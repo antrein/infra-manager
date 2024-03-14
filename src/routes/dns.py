@@ -5,13 +5,10 @@ from src.models.dns import GetDnsRecord, AddDnsRecord
 from random import choice, randint
 from fastapi import FastAPI, File, UploadFile
 from PIL import Image
-import io
-import os
-import pytz
 from datetime import datetime, timedelta
 import requests
 import json
-from src.services.sanitizer import sanitizeDnsList
+from src.services.sanitizer import sanitize_dns_list
 from dotenv import load_dotenv, dotenv_values
 
 dns_router = APIRouter(
@@ -46,7 +43,7 @@ async def get_dns_record():
                 "status_code": 200,
                 "status": "success",
                 "message": "DNS record successfully added",
-                "data": sanitizeDnsList(json_content)
+                "data": sanitize_dns_list(json_content)
             })
         elif response.status_code == 400:
             return JSONResponse(status_code=400, content={

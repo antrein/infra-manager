@@ -3,7 +3,7 @@ from typing import List
 
 from src.models.dns import GetDnsRecord
 
-def sanitizeDnsList(json_content: dict) -> str:
+def sanitize_dns_list(json_content: dict) -> str:
     try:
         # Extract the "result" key, which contains the list of DNS records
         dns_records_json = json_content.get("result", [])

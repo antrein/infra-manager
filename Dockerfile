@@ -18,5 +18,3 @@ EXPOSE 8000
 
 # Menjalankan main.py
 CMD [ "python", "main.py" ]
-
-

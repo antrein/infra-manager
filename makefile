@@ -2,7 +2,7 @@ CLUSTER_NAME=aegis
 CLUSTER_URL=http://127.0.0.1:50308/
 
 cluster-create:
-	kind create cluster --name $(CLUSTER_NAME) --image kindest/node:v1.23.5 --config=kind.yaml
+	kind create cluster --name $(CLUSTER_NAME) --image kindest/node:v1.23.5 --config=k8s/kind.yaml
 	kubectl config current-context
 	kubectl create sa python
 
@@ -19,13 +19,7 @@ cluster-auth:
 	kubectl apply -f ./k8s/service-account/
 
 auth:
-	@echo "KIND_TOKEN=$$(kubectl get secret $$(kubectl describe sa python | grep Tokens | awk '{print $$2}') -o json | jq -r .data.token | base64 --decode)" >> .env
-
-env:
-	@kubectl get secret $$(kubectl describe sa python | grep Tokens | awk '{print $$2}') -o json | jq -r .data.token | base64 --decode > .env.tmp
-	@sed -i '' '/KIND_TOKEN/d' .env  # Delete the line containing "KIND_TOKEN"
-	@echo "KIND_TOKEN=$$(cat .env.tmp)" >> .env  # Add the new line
-	@rm .env.tmp
-
+	@echo "KIND_TOKEN=$$(kubectl get secret $$(kubectl describe sa python | grep Tokens | awk '{print $$2}') -o json | jq -r .data.token | base64 --decode)" >> token.txt
+	
 run:
 	uvicorn main:app --reload
