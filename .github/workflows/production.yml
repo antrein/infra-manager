@@ -19,6 +19,7 @@ env:
 jobs:
   dockerize-and-push:
     runs-on: ubuntu-latest
+    environment: production
     steps:
       - name: Checkout the repo
         uses: actions/checkout@v2
@@ -26,8 +27,8 @@ jobs:
       - name: Create secret
         run: |
           pwd
-          echo "${{ vars.ENV }}" > .env
-          cat .env
+          echo "${{ vars.ENV }}" > ./.env
+          cat ./.env
           ls
 
       - name: Login to Docker Hub
@@ -44,7 +45,7 @@ jobs:
 
   deploy-to-server:
     runs-on: ubuntu-latest
-    environment: staging
+    environment: production
     needs: dockerize-and-push
     steps:
       - name: Checkout the repo

@@ -19,12 +19,14 @@ env:
 jobs:
   dockerize-and-push:
     runs-on: ubuntu-latest
+    environment: staging
     steps:
       - name: Checkout the repo
         uses: actions/checkout@v2
 
       - name: Create secret
         run: |
+          pwd
           echo "${{ vars.ENV }}" > ./.env
           cat ./.env
           ls
