@@ -25,6 +25,7 @@ spec:
          envFrom:
            - secretRef:
               name: <PROJECT_NAME>.env
+              optional: true
          resources:
           limits:
             memory: 150Mi          
