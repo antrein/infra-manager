@@ -19,5 +19,4 @@ pytz
 bcrypt
 pillow
 python-multipart
-firebase_admin
-google.cloud
+kubernetes==29.0.0

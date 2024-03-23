@@ -2,10 +2,12 @@ from fastapi import FastAPI
 from fastapi.responses import RedirectResponse
 import uvicorn
 from src.routes.dns import dns_router
+from src.routes.kubernetes import kube_router
 
 app = FastAPI()
 
 app.include_router(dns_router, prefix="/dns")
+app.include_router(kube_router, prefix="/kube")
 
 @app.get("/")
 async def home():
