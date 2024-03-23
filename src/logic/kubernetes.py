@@ -12,9 +12,12 @@ be_mode = config["BE_MODE"]
 def get_ns():
     script_path = 'script/shell/namespaces/get.sh'
     output = run_shell(script_path)
+    non_project_ns = ["cert-manager", "default", "ingress-nginx", "kube-node-lease", "kube-public", "kube-system", "production", "staging"]
     if output:
         namespaces = output.strip().split('\n')[1:]  # Skip header
-        return {"success": True, "data": namespaces}
+        names = [" ".join(item.split()[:-2]).strip() for item in namespaces]
+        sanitized_names = [name for name in names if name not in non_project_ns]
+        return {"success": True, "data": sanitized_names}
     else:
         return {"success": False, "message": "Failed to fetch namespaces"}
 
@@ -69,8 +72,41 @@ def get_production_deployment(project_id):
     
     # Check the success status of the operation and return a message accordingly
     if isinstance(result, dict) and result.get("success"):
-        return {"success": True, "message": f"Ingress for {project_id} created successfully"}
+        return {"success": True, "message": f"Workloads {project_id} created successfully"}
     elif isinstance(result, dict):
-        return {"success": False, "message": f"Failed to create Ingress for {project_id}. Error: {result.get('error')}"}
+        return {"success": False, "message": f"Failed to create workloads for {project_id}. Error: {result.get('error')}"}
     else:
-        return {"success": False, "message": f"An unexpected error occurred when creating Ingress for {project_id}."}
+        return {"success": False, "message": f"An unexpected error occurred when creating workloads for {project_id}."}
+    
+def rolling_upgrade():
+    # Get the list of project_id from get_ns()
+    project_ids = get_ns()
+
+    if project_ids is None:
+        return {"success": False, "message": "Failed to retrieve project IDs."}
+
+    if len(project_ids["data"]) == 0:
+        return {"success": True, "message": "No project detected."}
+
+    # If the retrieval is successful
+    if project_ids["success"]:
+        # Iterate over each project_id
+        for project_id in project_ids["data"]:
+            # Define replacements for the script
+
+            replacements = {'{{project_id}}': project_id, '{{github_pat}}': github_pat, '{{be_mode}}': be_mode}
+
+            # Define the script path
+            script_path = 'script/shell/pods/get-prod.sh'
+
+            # Run the script after replacements
+            result = replace_and_run_shell(script_path, replacements)
+
+            # Check the success status of the operation and return a message accordingly
+            if result.get("success"):
+                return {"success": True, "message": f"Workloads {project_id} created successfully"}
+            else:
+                return {"success": False, "message": f"Failed to create workloads for {project_id}. Error: {result.get('error')}"}
+    else:
+        # If retrieval fails, return an error message
+        return {"success": False, "message": "Failed to retrieve project IDs."}

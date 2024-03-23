@@ -29,6 +29,7 @@ def replace_and_run_shell(script_path, replacements):
             stderr=subprocess.PIPE, 
             text=True
         )
+        
         return {"success": True, "output": result.stdout.strip()}
     except subprocess.CalledProcessError as e:
         return {"success": False, "error": e.stderr.strip()}

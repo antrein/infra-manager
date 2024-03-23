@@ -1,18 +1,24 @@
 # src/routes/kubernetes.py
 from fastapi import APIRouter, HTTPException
-from src.logic.kubernetes import create_ns, get_ns, delete_ns, create_ingress, get_production_deployment
+from src.logic.kubernetes import create_ns, get_ns, delete_ns, create_ingress, get_production_deployment, rolling_upgrade
 
 # Initialize your API router
 kube_router = APIRouter(tags=["Kubernetes"])
 
+@kube_router.get("/rolling-ugrade", response_model=dict)
+async def rolling_upgrade_project():
+    result = rolling_upgrade()
+    print(result)
+    if result["success"]:
+        return {"message": "Success upgrade to the latest version."}
+    else:
+        raise HTTPException(status_code=500, detail=result["message"])
+
 @kube_router.get("/project", response_model=dict)
 async def list_project():
-    non_project_ns = ["cert-manager", "default", "ingress-nginx", "kube-node-lease", "kube-public", "kube-system", "production", "staging"]
     result = get_ns()
     if result["success"]:
-        names = [" ".join(item.split()[:-2]).strip() for item in result["data"]]
-        sanitized_names = [name for name in names if name not in non_project_ns]
-        return {"data": sanitized_names}
+        return {"data": result["data"]}
     else:
         raise HTTPException(status_code=500, detail=result["message"])
     
