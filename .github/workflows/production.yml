@@ -69,7 +69,7 @@ jobs:
       
       - name: Create kubeconfig
         run: |
-          echo '${{ vars.DO_KUBECONFIG }}' > k8s/authorization/kubeconfig.yml
+          echo '${{ vars.DO_KUBECONFIG }}' > ./k8s/authorization/kubeconfig.yml
 
       - name: Build and push Docker Image
         run: |
@@ -107,7 +107,7 @@ jobs:
       
       - name: Create kubeconfig
         run: |
-          echo '${{ vars.GCP_KUBECONFIG }}' > k8s/authorization/kubeconfig.yml
+          echo '${{ vars.GCP_KUBECONFIG }}' > ./k8s/authorization/kubeconfig.yml
 
       - name: Login Docker
         run: |
@@ -155,7 +155,7 @@ jobs:
       
       - name: Create kubeconfig
         run: |
-          echo '${{ vars.AWS_KUBECONFIG }}' > k8s/authorization/kubeconfig.yml
+          echo '${{ vars.AWS_KUBECONFIG }}' > ./k8s/authorization/kubeconfig.yml
 
       - name: Build, tag, and push image to Amazon ECR
         env:
@@ -197,7 +197,7 @@ jobs:
       
       - name: Create kubeconfig
         run: |
-          echo '${{ vars.AZURE_KUBECONFIG }}' > k8s/authorization/kubeconfig.yml
+          echo '${{ vars.AZURE_KUBECONFIG }}' > ./k8s/authorization/kubeconfig.yml
 
   deploy-to-server-do:
     needs: dockerize-and-push-do
