@@ -65,7 +65,7 @@ jobs:
 
       - name: Create secret
         run: |
-          echo '${{ vars.ENV }}' > ./env
+          echo '${{ vars.ENV }}' > ./.env
       
       - name: Create kubeconfig
         run: |
@@ -103,7 +103,7 @@ jobs:
 
       - name: Create secret
         run: |
-          echo '${{ vars.ENV }}' > ./env
+          echo '${{ vars.ENV }}' > ./.env
       
       - name: Create kubeconfig
         run: |
@@ -151,7 +151,7 @@ jobs:
 
       - name: Create secret
         run: |
-          echo '${{ vars.ENV }}' > ./env
+          echo '${{ vars.ENV }}' > ./.env
       
       - name: Create kubeconfig
         run: |
@@ -193,7 +193,7 @@ jobs:
 
       - name: Create secret
         run: |
-          echo '${{ vars.ENV }}' > ./env
+          echo '${{ vars.ENV }}' > ./.env
       
       - name: Create kubeconfig
         run: |
