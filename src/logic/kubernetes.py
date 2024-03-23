@@ -6,6 +6,7 @@ load_dotenv()
 config = dotenv_values(".env")
 
 github_pat = config["GITHUB_PAT"]
+be_mode = config["BE_MODE"]
 
 # NAMESPACE MANAGEMENT
 def get_ns():
@@ -61,7 +62,7 @@ def create_ingress(project_id):
     
 def get_production_deployment(project_id):
     script_path = 'script/shell/pods/get-prod.sh'
-    replacements = {'{{project_id}}': project_id, '{{github_pat}}': github_pat}
+    replacements = {'{{project_id}}': project_id, '{{github_pat}}': github_pat, '{{be_mode}}': be_mode}
     
     # Run the script after replacements
     result = replace_and_run_shell(script_path, replacements)
