@@ -8,7 +8,7 @@ WORKDIR /app
 COPY . /app
 
 # Menginstall dependencies yang diperlukan untuk kubectl
-RUN apk add --no-cache curl gnupg
+RUN apk add --no-cache curl gnupg bash
 
 RUN apk add --no-cache --virtual .pynacl_deps build-base python3-dev libffi-dev
 
@@ -21,7 +21,6 @@ RUN curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/s
 RUN python -m pip install --upgrade pip
 
 # Menginstall semua requirement yang dibutuhkan
-RUN pip install "cython<3.0.0" && pip install --no-build-isolation pyyaml==6.0
 RUN pip install -r requirements.txt
 
 # Copy kubeconfig.yml into the image

@@ -5,11 +5,14 @@ from src.logic.kubernetes import create_ns, get_ns, delete_ns, create_ingress, g
 # Initialize your API router
 kube_router = APIRouter(tags=["Kubernetes"])
 
-@kube_router.get("/namespace", response_model=list)
-async def list_namespaces():
+@kube_router.get("/project", response_model=dict)
+async def list_project():
+    non_project_ns = ["cert-manager", "default", "ingress-nginx", "kube-node-lease", "kube-public", "kube-system", "production", "staging"]
     result = get_ns()
     if result["success"]:
-        return result["data"]
+        names = [" ".join(item.split()[:-2]).strip() for item in result["data"]]
+        sanitized_names = [name for name in names if name not in non_project_ns]
+        return {"data": sanitized_names}
     else:
         raise HTTPException(status_code=500, detail=result["message"])
     
