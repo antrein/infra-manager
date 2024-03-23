@@ -8,7 +8,7 @@ WORKDIR /app
 COPY . /app
 
 # Menginstall dependencies yang diperlukan untuk kubectl
-RUN apk add --no-cache curl gnupg bash
+RUN apk add --no-cache curl gnupg bash git
 
 RUN apk add --no-cache --virtual .pynacl_deps build-base python3-dev libffi-dev
 

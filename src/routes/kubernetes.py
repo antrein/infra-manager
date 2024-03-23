@@ -36,14 +36,14 @@ async def create_project(project_id: str):
         raise HTTPException(status_code=400, detail=ingress_result["message"])
     
 
-    return {"message": f"project {project_id} and associated ingress created successfully"}
+    return {"message": f"project {project_id} created successfully"}
 
 
 @kube_router.delete("/project/{project_id}", status_code=200)
 async def delete_project(project_id: str):
     result = delete_ns(project_id)
     if result["success"]:
-        return {"message": result["message"]}
+        return {"message": f"project {project_id} deleted successfully"}
     else:
         raise HTTPException(status_code=400, detail=result["message"])
     
