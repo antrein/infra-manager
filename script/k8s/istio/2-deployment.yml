@@ -1,0 +1,39 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: hello
+  namespace: fdc
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: hello-pods
+  template:
+    metadata:
+      labels:
+        app: hello-pods
+    spec:
+      containers:
+      - image: wardviaene/http-echo
+        name: hello
+        env:
+        - name: TEXT
+          value: Ceritanya queue fdc
+        ports:
+        - containerPort: 8080
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: hello
+  namespace: fdc
+  labels:
+   app: hello
+spec:
+  selector:
+    app: hello-pods
+  type: ClusterIP
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: 8080

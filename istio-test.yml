@@ -1,0 +1,88 @@
+
+# Service Definition
+apiVersion: networking.istio.io/v1alpha3
+kind: ServiceEntry
+metadata:
+  name: gdp
+  namespace: gdp
+spec:
+  hosts:
+  - "http2demo.io"
+  location: MESH_EXTERNAL
+  ports:
+  - number: 80 
+    name: http
+    protocol: HTTP
+  - number: 443 
+    name: https
+    protocol: HTTPS
+  resolution: DNS
+---
+# VirtualService Configuration
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: gdp
+  namespace: gdp
+spec:
+  gateways:
+  - gdp-gateway
+  hosts:
+  - gdp-redirect.hermes.antrein.com
+  http:
+  - match:
+    - uri:
+        regex: ".*"
+    rewrite:
+      uri: "/"
+      authority: http2demo.io
+    route:
+    - destination:
+        host: http2demo.io
+        port:
+          number: 80
+---
+# Gateway Configuration
+# apiVersion: networking.istio.io/v1alpha3
+# kind: DestinationRule
+# metadata:
+#   name: gdp
+#   namespace: gdp
+# spec:
+#   host: "gdplabs.id"
+#   trafficPolicy:
+#     tls:
+#       mode: SIMPLE
+---
+# Gateway
+apiVersion: networking.istio.io/v1alpha3
+kind: Gateway
+metadata:
+  name: gdp-gateway
+  namespace: istio-system
+  annotations: 
+    cert-manager.io/issue-temporary-certificate: "true"
+    acme.cert-manager.io/http01-edit-in-place: "true"
+    cert-manager.io/issuer: letsencrypt-istio
+spec:
+  selector:
+    istio: ingress
+  servers:
+  - hosts:
+    - gdp-redirect.hermes.antrein.com
+    port:
+      number: 80
+      name: http
+      protocol: HTTP
+    tls:
+      httpsRedirect: true
+  - hosts:
+    - gdp-redirect.hermes.antrein.com
+    port:
+      name: https
+      number: 443
+      protocol: HTTPS
+    tls:
+      mode: SIMPLE
+      credentialName: hermes-antrein-crt
+---
