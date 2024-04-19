@@ -1,17 +1,20 @@
 from fastapi import FastAPI
 from fastapi.responses import RedirectResponse
 import uvicorn
-from src.routes.dns import dns_router
 from src.routes.kubernetes import kube_router
+
+from dotenv import load_dotenv, dotenv_values
+
+load_dotenv()
+config = dotenv_values(".env")
 
 app = FastAPI()
 
-app.include_router(dns_router, prefix="/dns")
 app.include_router(kube_router, prefix="/kube")
 
 @app.get("/")
 async def home():
-    return {"message": "Aegis Infrastructure Manager"}
+    return {"message": "Antrein Infrastructure Manager", "infra_mode": config["INFRA_MODE"], "be_mode": config["BE_MODE"]}
 
 if __name__ == '__main__':
     uvicorn.run('main:app', host='0.0.0.0', port=8000,

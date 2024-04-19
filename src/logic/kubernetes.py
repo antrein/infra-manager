@@ -8,6 +8,7 @@ config = dotenv_values(".env")
 
 github_pat = config["GITHUB_PAT"]
 be_mode = config["BE_MODE"]
+infra_mode = config["INFRA_MODE"]
 
 # NAMESPACE MANAGEMENT
 def get_ns():
@@ -39,7 +40,11 @@ def create_ns(project_id):
 
 def delete_ns(project_id):
     try:
-        script_path = 'script/shell/namespaces/delete.sh'
+        if infra_mode == "shared": 
+            script_path = 'script/shell/namespaces/delete-shared.sh'
+        else:
+            script_path = 'script/shell/namespaces/delete.sh'
+
         replacements = {'{{project_id}}': project_id}
         success = replace_and_run_shell(script_path, replacements)
         if success:
@@ -133,10 +138,11 @@ def rolling_upgrade():
     
 # DEPLOYMENT MANAGEMENT
     
-def create_redirect(project_id, project_domain, url_path):
+def create_redirect(project_id, project_domain, url_path, infra_mode):
     try:
         script_path = 'script/shell/ingress/redirect.sh'
-        replacements = {'{{project_id}}': project_id, '{{project_domain}}': project_domain, '{{url_path}}': url_path}
+
+        replacements = {'{{project_id}}': project_id, '{{infra_mode}}': infra_mode, '{{project_domain}}': project_domain, '{{url_path}}': url_path}
         
         # Run the script after replacements
         result = replace_and_run_shell(script_path, replacements)
