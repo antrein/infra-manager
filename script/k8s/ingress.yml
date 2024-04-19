@@ -23,11 +23,10 @@ spec:
   tls:
     - secretName: <project_id>-tls
       hosts:
-        - <project_id>.aegis.antrein.com
-        - <project_id>.api.aegis.antrein.com
-        
+        - <project_id>.antrein.com
+        - <project_id>.api.antrein.com
   rules:
-  - host: <project_id>.api.aegis.antrein.com
+  - host: <project_id>.api.antrein.com
     http:
       paths:
       - backend:
@@ -44,7 +43,7 @@ spec:
               number: 8080
         path: /bc/queue/
         pathType: ImplementationSpecific
-  - host: <project_id>.aegis.antrein.com
+  - host: <project_id>.antrein.com
     http:
       paths:
       - backend:

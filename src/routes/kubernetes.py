@@ -1,6 +1,6 @@
 # src/routes/kubernetes.py
 from fastapi import APIRouter, HTTPException
-from src.logic.kubernetes import create_ns, get_ns, delete_ns, create_ingress, get_production_deployment, rolling_upgrade, create_redirect
+from src.logic.kubernetes import create_ns, get_ns, delete_ns, create_ingress, get_production_deployment, rolling_upgrade, create_redirect, health_check
 from src.models.kubernetes import UrlRedirectRequest
 
 # Initialize your API router
@@ -37,7 +37,7 @@ async def create_project(request: UrlRedirectRequest):
     ingress_result = create_ingress(request.project_id)
 
     # Create Redirect
-    redirect_result = create_redirect(request.project_id, request.project_domain, request.url_path)
+    redirect_result = create_redirect(request.project_id,request.project_domain, request.url_path)
 
     # Rollback
     if not ingress_result["success"]:
@@ -45,7 +45,6 @@ async def create_project(request: UrlRedirectRequest):
         delete_ns(request.project_id)
         raise HTTPException(status_code=400, detail=ingress_result["message"])
     
-
     return {"message": f"project {request.project_id} created successfully"}
 
 
@@ -57,3 +56,34 @@ async def delete_project(project_id: str):
     else:
         raise HTTPException(status_code=400, detail=result["message"])
     
+@kube_router.get("/health/{namespace}", response_model=dict)
+async def check_health(namespace: str):
+    result = health_check(namespace)
+    if not result['success']:
+        # If health_check fails to execute properly, provide a detailed error message
+        raise HTTPException(status_code=500, detail=result["message"])
+
+    # Evaluate the total number of deployments
+    if result["total_deployments"] == 0:
+        # No deployments found in the namespace
+        return {
+            "status": "failed",
+            "message": "No deployments found in the namespace."
+        }
+    else:
+        # Check if there are non-ready deployments
+        if result["non_ready_deployments"]:
+            # There are some deployments not ready
+            return {
+                "status": "success",
+                "message": "Some deployments are not ready.",
+                "healthiness": False,
+                "deployment_names": result["non_ready_deployments"]
+            }
+        else:
+            # All deployments are ready
+            return {
+                "status": "success",
+                "message": "All deployments are healthy.",
+                "healthiness": True
+            }

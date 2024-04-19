@@ -6,7 +6,7 @@ metadata:
 data:
   default.conf.template: |
     server {
-        listen 80;
+        listen 127.0.0.1:80;
         server_name ${HOST};
 
         location / {
@@ -20,17 +20,17 @@ data:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: <project_id>-reverse-proxy
+  name: reverse-proxy
   namespace: <project_id>
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: <project_id>-reverse-proxy
+      app: nginx-reverse-proxy
   template:
     metadata:
       labels:
-        app: <project_id>-reverse-proxy
+        app: nginx-reverse-proxy
     spec:
       initContainers:
       - name: init-nginx-config
@@ -39,7 +39,7 @@ spec:
         args:
         - |
           mkdir -p /etc/nginx/conf.d && \
-          sed -e 's|${HOST}|<project_id>-redirect.aegis.antrein.com|g' \
+          sed -e 's|${HOST}|localhost|g' \
               -e 's|${TARGET_SERVICE}|https://<project_domain>/|g' \
               -e 's|${TARGET_HOST}|<project_domain>|g' \
               /etc/nginx/templates/default.conf.template > /etc/nginx/conf.d/default.conf
@@ -56,6 +56,13 @@ spec:
         volumeMounts:
         - name: nginx-conf
           mountPath: /etc/nginx/conf.d
+      - name: gateway-proxy
+        image: reyshazni/gateway-proxy-production
+        ports:
+        - containerPort: 8080
+        env:
+        - name: NGINX_SERVICE_URL
+          value: "http://localhost:80"
       volumes:
       - name: config-volume
         configMap:
@@ -66,17 +73,14 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: <project_id>-reverse-proxy
+  name: reverse-proxy
   namespace: <project_id>
 spec:
-  selector:
-    app: <project_id>-reverse-proxy
   ports:
-  - protocol: TCP
-    port: 80
-    targetPort: 80
-  type: ClusterIP
-
+    - port: 8080
+      targetPort: 8080
+  selector:
+    app: nginx-reverse-proxy
 ---
 apiVersion: networking.k8s.io/v1
 kind: Ingress
@@ -95,23 +99,23 @@ metadata:
       more_set_headers "Access-Control-Allow-Credentials: true";
       more_set_headers "Access-Control-Expose-Headers: *";
       add_header Access-Control-Allow-Headers "DNT,X-CustomHeader,X-LANG,Keep-Alive,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,X-Api-Key,X-Device-Id,Access-Control-Allow-Origin,econolab-uid-authorization,authorization,authorization-v2,api-key,base-url,method,path";    
-  name: <project_id>-reverse-proxy
+  name: reverse-proxy
   namespace: <project_id>
 spec:
   ingressClassName: nginx
   rules:
   rules:
-  - host: <project_id>-redirect.aegis.antrein.com
+  - host: <project_id>-redirect.antrein.com
     http:
       paths:
-      - path: /
+      - path: <url_path>
         pathType: Prefix
         backend:
           service:
-            name: <project_id>-reverse-proxy
+            name: reverse-proxy
             port:
-              number: 80
+              number: 8080
   tls:
   - hosts:
-    - <project_id>-redirect.aegis.antrein.com
-    secretName: <project_id>-reverse-proxy-tls
+    - <project_id>-redirect.antrein.com
+    secretName: <project_id>-redirect-tls

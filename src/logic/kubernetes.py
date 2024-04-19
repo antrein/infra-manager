@@ -150,3 +150,33 @@ def create_redirect(project_id, project_domain, url_path):
             return {"success": False, "message": f"An unexpected error occurred when creating workloads for {project_id}."}
     except Exception as e:
         return {"success": False, "message": f"An exception occurred: {str(e)}"}
+    
+def health_check(namespace):
+    script_path = 'script/shell/namespaces/hc.sh'
+    replacements = {'{{namespace}}': namespace}
+    
+    # Run the script with the namespace dynamically replaced
+    result = replace_and_run_shell(script_path, replacements)
+    
+    if not result['success']:
+        return {"success": False, "message": result.get("error", "Unknown error occurred")}
+
+    # Process the output to extract necessary details
+    lines = result['output'].strip().split('\n')
+    non_ready_deployments = []
+    total_deployments = 0
+
+    for line in lines:
+        parts = line.split()
+        if len(parts) < 2:
+            continue
+        total_deployments += 1
+        deployment_name, ready_status = parts[0], parts[1]
+        if ready_status == "False":
+            non_ready_deployments.append(deployment_name)
+
+    return {
+        "success": True,
+        "non_ready_deployments": non_ready_deployments,
+        "total_deployments": total_deployments
+    }
