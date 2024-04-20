@@ -24,7 +24,7 @@ def replace_and_run_shell(script_path, replacements):
     try:
         result = subprocess.run(
             ['/bin/bash', '-c', script_content], 
-            check=True, 
+            check=False, 
             stdout=subprocess.PIPE, 
             stderr=subprocess.PIPE, 
             text=True

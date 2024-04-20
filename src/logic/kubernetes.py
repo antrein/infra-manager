@@ -13,16 +13,27 @@ infra_mode = config["INFRA_MODE"]
 # NAMESPACE MANAGEMENT
 def get_ns():
     try:
-        script_path = 'script/shell/namespaces/get.sh'
+        if infra_mode == "shared": 
+            script_path = 'script/shell/namespaces/get-shared.sh'
+        else:
+            script_path = 'script/shell/namespaces/get.sh'
         output = run_shell(script_path)
         non_project_ns = ["cert-manager", "default", "ingress-nginx", "kube-node-lease", "kube-public", "kube-system", "production", "staging"]
-        if output:
-            namespaces = output.strip().split('\n')[1:]  # Skip header
-            names = [" ".join(item.split()[:-2]).strip() for item in namespaces]
-            sanitized_names = [name for name in names if name not in non_project_ns]
-            return {"success": True, "data": sanitized_names}
+
+        if infra_mode == "shared":
+            if output:
+                namespaces = output.strip().split('\n')[1:]  # Skip header
+                return {"success": True, "data": namespaces}
+            else:
+                return {"success": False, "message": "Failed to fetch namespaces"}
         else:
-            return {"success": False, "message": "Failed to fetch namespaces"}
+            if output:
+                namespaces = output.strip().split('\n')[1:]  # Skip header
+                names = [" ".join(item.split()[:-2]).strip() for item in namespaces]
+                sanitized_names = [name for name in names if name not in non_project_ns]
+                return {"success": True, "data": sanitized_names}
+            else:
+                return {"success": False, "message": "Failed to fetch namespaces"}
     except Exception as e:
         return {"success": False, "message": f"An exception occurred: {str(e)}"}
 
@@ -76,7 +87,6 @@ def create_ingress(project_id):
     except Exception as e:
         return {"success": False, "message": f"An exception occurred: {str(e)}"}
     
-
 ######################################
     
 # DEPLOYMENT MANAGEMENT
@@ -158,12 +168,17 @@ def create_redirect(project_id, project_domain, url_path, infra_mode):
         return {"success": False, "message": f"An exception occurred: {str(e)}"}
     
 def health_check(namespace):
-    script_path = 'script/shell/namespaces/hc.sh'
+    if infra_mode == "shared": 
+        script_path = 'script/shell/namespaces/hc-shared.sh'
+    else:
+        script_path = 'script/shell/namespaces/hc.sh'
+
     replacements = {'{{namespace}}': namespace}
     
     # Run the script with the namespace dynamically replaced
     result = replace_and_run_shell(script_path, replacements)
-    
+
+    print(result)
     if not result['success']:
         return {"success": False, "message": result.get("error", "Unknown error occurred")}
 

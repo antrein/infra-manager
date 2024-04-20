@@ -65,7 +65,7 @@ spec:
         pathType: Prefix
         backend:
           service:
-            name: gateway-proxy
+            name: gateway-proxy-<project_id>
             port:
               number: 8080
   tls:
