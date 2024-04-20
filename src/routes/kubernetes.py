@@ -32,9 +32,11 @@ async def list_project():
 @kube_router.post("/project", status_code=200)
 async def create_project(request: UrlRedirectRequest):
     # Create namespace
-    ns_result = create_ns(request.project_id)
-    if not ns_result["success"]:
-        raise HTTPException(status_code=400, detail=ns_result["message"])
+    if infra_mode == "multi":
+        ns_result = create_ns(request.project_id)
+        
+        if not ns_result["success"]:
+            raise HTTPException(status_code=400, detail=ns_result["message"])
     
     if infra_mode == "multi":
         deploy_result = get_production_deployment(request.project_id)
