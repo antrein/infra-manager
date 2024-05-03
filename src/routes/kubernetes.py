@@ -1,6 +1,6 @@
 # src/routes/kubernetes.py
 from fastapi import APIRouter, HTTPException
-from src.logic.kubernetes import create_ns, get_ns, delete_ns, create_ingress, get_production_deployment, rolling_upgrade, create_redirect, health_check
+from src.logic.kubernetes import create_ns, delete_redirect, get_ns, delete_ns, create_ingress, get_production_deployment, rolling_upgrade, create_redirect, health_check
 from src.models.kubernetes import UrlRedirectRequest
 from dotenv import load_dotenv, dotenv_values
 
@@ -61,7 +61,15 @@ async def delete_project(project_id: str):
         return {"message": f"project {project_id} deleted successfully"}
     else:
         raise HTTPException(status_code=400, detail=result["message"])
-    
+
+@kube_router.delete("/project/redirect/{project_id}", status_code=200)
+async def delete_redirect_router(project_id: str):
+    result = delete_redirect(project_id)
+    if result["success"]:
+        return {"message": f"project {project_id} deleted successfully"}
+    else:
+        raise HTTPException(status_code=400, detail=result["message"])
+
 @kube_router.get("/health/{project_id}", response_model=dict)
 async def check_health(project_id: str):
     result = health_check(project_id)

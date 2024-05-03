@@ -167,6 +167,25 @@ def create_redirect(project_id, project_domain, url_path, infra_mode):
     except Exception as e:
         return {"success": False, "message": f"An exception occurred: {str(e)}"}
     
+def delete_redirect(project_id):
+    try:
+        script_path = 'script/shell/ingress/delete-redirect.sh'
+
+        replacements = {'{{project_id}}': project_id, '{{infra_mode}}': infra_mode}
+        
+        # Run the script after replacements
+        result = replace_and_run_shell(script_path, replacements)
+        
+        # Check the success status of the operation and return a message accordingly
+        if isinstance(result, dict) and result.get("success"):
+            return {"success": True, "message": f"Workloads {project_id} created successfully"}
+        elif isinstance(result, dict):
+            return {"success": False, "message": f"Failed to create workloads for {project_id}. Error: {result.get('error')}"}
+        else:
+            return {"success": False, "message": f"An unexpected error occurred when creating workloads for {project_id}."}
+    except Exception as e:
+        return {"success": False, "message": f"An exception occurred: {str(e)}"}
+    
 def health_check(namespace):
     if infra_mode == "shared": 
         script_path = 'script/shell/namespaces/hc-shared.sh'
