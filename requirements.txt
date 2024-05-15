@@ -21,3 +21,4 @@ pillow
 python-multipart
 kubernetes==29.0.0
 beautifulsoup4
+google-cloud-storage
