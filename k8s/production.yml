@@ -1,44 +1,44 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
- name: <project_id>
+ name: <PROJECT_NAME>
  namespace: production
  labels:
-   app: <project_id> #create deployment with label name
+   app: <PROJECT_NAME> #create deployment with label name
    commit-hash: "<VERSION>"
 spec:
  replicas: 1
  selector:
    matchLabels:
-     app: <project_id>-pods #target pods with this label
+     app: <PROJECT_NAME>-pods #target pods with this label
  template:
    metadata:
      labels:
-       app: <project_id>-pods #create pods with label name
+       app: <PROJECT_NAME>-pods #create pods with label name
    spec:
      containers:
-       - name: <project_id>-cont
+       - name: <PROJECT_NAME>-cont
          image: <IMAGE_NAME>
          imagePullPolicy: Always
          ports:
            - containerPort: <PORT>
          envFrom:
            - secretRef:
-              name: <project_id>.env
+              name: <PROJECT_NAME>.env
               optional: true       
 
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: <project_id>
+  name: <PROJECT_NAME>
   namespace: production
   labels:
-   app: <project_id> #create services with label name
+   app: <PROJECT_NAME> #create services with label name
    commit-hash: "<VERSION>"
 spec:
   selector:
-    app: <project_id>-pods #targeting service name
+    app: <PROJECT_NAME>-pods #targeting service name
   type: ClusterIP
   ports:
   - protocol: TCP
