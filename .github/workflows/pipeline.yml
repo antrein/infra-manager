@@ -1,4 +1,4 @@
-name: Backend CI/CD Pipeline
+name: FastAPI CI/CD Pipeline
 
 on:
   push:
@@ -60,11 +60,11 @@ jobs:
 
       - name: Create secret
         run: |
-          echo '${{ vars.ENV }}' > ./files/secrets/secrets.config.json
+          echo '${{ vars.ENV }}' > ./.env
 
       - name: Test secret
         run: |
-          cat ./files/secrets/secrets.config.json
+          cat ./.env
 
       - name: Build and push Docker Image
         env: 
