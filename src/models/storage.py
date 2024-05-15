@@ -11,6 +11,8 @@ class UploadFileRequest(BaseModel):
     def validate_file_name(cls, v):
         if not re.match(r'^[a-zA-Z0-9]+$', v):
             raise ValueError('file_name must be alphanumeric with no spaces')
+        if v.lower() == "default":
+            raise ValueError('file_name cannot be "default"')
         return v
 
     @validator('html_base64')
