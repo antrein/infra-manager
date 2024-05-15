@@ -32,3 +32,5 @@ archive.zip
 .DS_Store
 
 *kubeconfig.yml
+
+*service-account*

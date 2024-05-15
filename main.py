@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from fastapi.responses import RedirectResponse
 import uvicorn
 from src.routes.kubernetes import kube_router
+from src.routes.storage import storage_router
 
 from dotenv import load_dotenv, dotenv_values
 
@@ -11,6 +12,7 @@ config = dotenv_values(".env")
 app = FastAPI()
 
 app.include_router(kube_router, prefix="/kube")
+app.include_router(storage_router, prefix="/storage")
 
 @app.get("/")
 async def home():
