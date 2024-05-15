@@ -30,34 +30,27 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       IMAGE_TAG: ${{ steps.set-env.outputs.IMAGE_TAG }}
-      BRANCH: ${{ steps.set-env.outputs.BRANCH }}
+      IMAGE_NAME: ${{ steps.set-env.outputs.IMAGE_NAME }}
+      SHORT_SHA: ${{ steps.set-env.outputs.SHORT_SHA }}
+      BRANCH: ${{ env.BRANCH }}
     steps:
       - name: Set environment variables
         id: set-env
         run: |
           SHORT_SHA=$(echo "${{ github.sha }}" | cut -c1-7)
-          echo "::set-output name=IMAGE_TAG::${{ env.BRANCH }}:$SHORT_SHA"
-          echo "::set-output name=BRANCH::${{ env.BRANCH }}"
+          IMAGE_TAG="${{ env.PROJECT_NAME }}:$SHORT_SHA"
+          IMAGE_NAME="reyshazni/${{ github.event.repository.name }}-$IMAGE_TAG"
+          echo "IMAGE_TAG=$IMAGE_TAG" >> $GITHUB_OUTPUT
+          echo "SHORT_SHA=$SHORT_SHA" >> $GITHUB_OUTPUT
+          echo "IMAGE_NAME=$IMAGE_NAME" >> $GITHUB_OUTPUT
 
   dockerize-and-push:
     needs: setup-environment
     environment: ${{ needs.setup-environment.outputs.BRANCH }}
     runs-on: ubuntu-latest
-    outputs:
-      IMAGE_TAG: ${{ steps.set-env.outputs.IMAGE_TAG }}
     steps:
       - name: Checkout the repo
         uses: actions/checkout@v2
-
-      - name: Pass env
-        id: set-env
-        run: |
-          echo "::set-output name=IMAGE_TAG::${{ needs.setup-environment.outputs.IMAGE_TAG }}"
-          echo "::set-output name=BRANCH::${{ env.BRANCH }}"
-
-      - name: Create secret
-        run: |
-          echo '${{ vars.ENV }}' > ./.env
 
       - name: Login Docker
         uses: docker/login-action@v2
@@ -65,30 +58,39 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
-      - name: Build and push Docker Image
+      - name: Create secret
         run: |
-          IMAGE_NAME="${{ github.event.repository.name }}-${{ needs.setup-environment.outputs.IMAGE_TAG }}"
-          docker build -t reyshazni/$IMAGE_NAME .
-          docker push reyshazni/$IMAGE_NAME
-        env:
-          IMAGE_TAG: ${{ needs.setup-environment.outputs.IMAGE_TAG }}
+          echo '${{ vars.ENV }}' > ./files/secrets/secrets.config.json
+
+      - name: Test secret
+        run: |
+          cat ./files/secrets/secrets.config.json
+
+      - name: Build and push Docker Image
+        env: 
+          IMAGE_NAME: ${{ needs.setup-environment.outputs.IMAGE_NAME }}
+        run: |
+          docker build -t $IMAGE_NAME .
+          docker push $IMAGE_NAME
+          echo "IMAGE_NAME=$IMAGE_NAME" >> $GITHUB_OUTPUT
 
   deploy-to-server-gcp:
-    needs: dockerize-and-push
+    needs: [setup-environment, dockerize-and-push]
     if: vars.CLOUD_PLATFORM == 'gcp'
     runs-on: ubuntu-latest
-    environment: ${{ needs.dockerize-and-push-gcp.outputs.BRANCH }}
+    environment: ${{ needs.setup-environment.outputs.BRANCH }}
     steps:
       - name: Checkout the repo
         uses: actions/checkout@v2
 
       - name: Prepare deployment file
+        env: 
+          IMAGE_NAME: ${{ needs.setup-environment.outputs.IMAGE_NAME }}
+          SHORT_SHA: ${{ needs.setup-environment.outputs.SHORT_SHA }}
         run: |
-          IMAGE_TAG=${{ needs.dockerize-and-push-gcp.outputs.IMAGE_TAG }}
-          SHORT_SHA=$(echo "$IMAGE_TAG" | cut -d':' -f2)
-          sed -i "s|<project_id>|${{ env.project_id }}|g" k8s/${{ env.BRANCH }}.yml
-          sed -i "s|<IMAGE_NAME>|reyshazni/${{ github.event.repository.name }}-$IMAGE_TAG|g" k8s/${{ env.BRANCH }}.yml
-          sed -i "s|<VERSION>|$SHORT_SHA|g" k8s/${{ env.BRANCH }}.yml
+          sed -i "s|<PROJECT_NAME>|${{ env.PROJECT_NAME }}|g" k8s/${{ env.BRANCH }}.yml
+          sed -i "s|<IMAGE_NAME>|${{ env.IMAGE_NAME }}|g" k8s/${{ env.BRANCH }}.yml
+          sed -i "s|<VERSION>|${{ env.SHORT_SHA }}|g" k8s/${{ env.BRANCH }}.yml
           sed -i "s|<PORT>|${{ env.PORT }}|g" k8s/${{ env.BRANCH }}.yml
           cat k8s/${{ env.BRANCH }}.yml
 
@@ -107,22 +109,39 @@ jobs:
         run: |
           kubectl apply -f k8s/${{ env.BRANCH }}.yml
 
+      - name: Push YAML to another GitHub repo
+        if: github.ref != 'refs/heads/staging'
+        env:
+          GIT_USER: reyshazni
+          GIT_TOKEN: ${{ vars.GIT_PAT }}
+          GIT_EMAIL: reyshazni@gmail.com
+        run: |
+          git config --global user.email ${GIT_EMAIL}
+          git config --global user.name ${GIT_USER}
+          git clone https://github.com/antrein/prod-yml.git
+          cp ./k8s/${{ env.BRANCH }}.yml ./prod-yml/${{ env.PROJECT_NAME }}.yml
+          cd ./prod-yml
+          git add .
+          git commit -m "Update Kubernetes YAML file"
+          git push https://${GIT_USER}:${GIT_TOKEN}@github.com/antrein/prod-yml.git
+
   deploy-to-server-aws:
-    needs: dockerize-and-push
+    needs: [setup-environment, dockerize-and-push]
     if: vars.CLOUD_PLATFORM == 'aws'
     runs-on: ubuntu-latest
-    environment: ${{ needs.dockerize-and-push-aws.outputs.BRANCH }}
+    environment: ${{ needs.setup-environment.outputs.BRANCH }}
     steps:
       - name: Checkout the repo
         uses: actions/checkout@v2
 
       - name: Prepare deployment file
+        env: 
+          IMAGE_NAME: ${{ needs.setup-environment.outputs.IMAGE_NAME }}
+          SHORT_SHA: ${{ needs.setup-environment.outputs.SHORT_SHA }}
         run: |
-          IMAGE_TAG=${{ needs.dockerize-and-push-aws.outputs.IMAGE_TAG }}
-          SHORT_SHA=$(echo "$IMAGE_TAG" | cut -d':' -f2)
-          sed -i "s|<project_id>|${{ env.project_id }}|g" k8s/${{ env.BRANCH }}.yml
-          sed -i "s|<IMAGE_NAME>|reyshazni/${{ github.event.repository.name }}-$IMAGE_TAG|g" k8s/${{ env.BRANCH }}.yml
-          sed -i "s|<VERSION>|$SHORT_SHA|g" k8s/${{ env.BRANCH }}.yml
+          sed -i "s|<PROJECT_NAME>|${{ env.PROJECT_NAME }}|g" k8s/${{ env.BRANCH }}.yml
+          sed -i "s|<IMAGE_NAME>|${{ env.IMAGE_NAME }}|g" k8s/${{ env.BRANCH }}.yml
+          sed -i "s|<VERSION>|${{ env.SHORT_SHA }}|g" k8s/${{ env.BRANCH }}.yml
           sed -i "s|<PORT>|${{ env.PORT }}|g" k8s/${{ env.BRANCH }}.yml
           cat k8s/${{ env.BRANCH }}.yml
 
@@ -140,21 +159,54 @@ jobs:
         run: |
           kubectl apply -f k8s/${{ env.BRANCH }}.yml
 
+      - name: Push YAML to another GitHub repo
+        if: github.ref != 'refs/heads/staging'
+        env:
+          GIT_USER: reyshazni
+          GIT_TOKEN: ${{ vars.GIT_PAT }}
+          GIT_EMAIL: reyshazni@gmail.com
+        run: |
+          git config --global user.email ${GIT_EMAIL}
+          git config --global user.name ${GIT_USER}
+          git clone https://github.com/antrein/prod-yml.git
+          cp ./k8s/${{ env.BRANCH }}.yml ./prod-yml/${{ env.PROJECT_NAME }}.yml
+          cd ./prod-yml
+          git add .
+          git commit -m "Update Kubernetes YAML file"
+          git push https://${GIT_USER}:${GIT_TOKEN}@github.com/antrein/prod-yml.git
+
   deploy-to-server-azure:
-    needs: dockerize-and-push
+    needs: [setup-environment, dockerize-and-push]
     if: vars.CLOUD_PLATFORM == 'azure'
     runs-on: ubuntu-latest
-    environment: ${{ needs.dockerize-and-push-azure.outputs.BRANCH }}
+    environment: ${{ needs.setup-environment.outputs.BRANCH }}
     steps:
       - name: Checkout the repo
         uses: actions/checkout@v2
 
       - name: Prepare deployment file
+        env: 
+          IMAGE_NAME: ${{ needs.setup-environment.outputs.IMAGE_NAME }}
+          SHORT_SHA: ${{ needs.setup-environment.outputs.SHORT_SHA }}
         run: |
-          IMAGE_TAG=${{ needs.dockerize-and-push-azure.outputs.IMAGE_TAG }}
-          SHORT_SHA=$(echo "$IMAGE_TAG" | cut -d':' -f2)
-          sed -i "s|<project_id>|${{ env.project_id }}|g" k8s/${{ env.BRANCH }}.yml
-          sed -i "s|<IMAGE_NAME>|reyshazni/${{ github.event.repository.name }}-$IMAGE_TAG|g" k8s/${{ env.BRANCH }}.yml
-          sed -i "s|<VERSION>|$SHORT_SHA|g" k8s/${{ env.BRANCH }}.yml
+          sed -i "s|<PROJECT_NAME>|${{ env.PROJECT_NAME }}|g" k8s/${{ env.BRANCH }}.yml
+          sed -i "s|<IMAGE_NAME>|${{ env.IMAGE_NAME }}|g" k8s/${{ env.BRANCH }}.yml
+          sed -i "s|<VERSION>|${{ env.SHORT_SHA }}|g" k8s/${{ env.BRANCH }}.yml
           sed -i "s|<PORT>|${{ env.PORT }}|g" k8s/${{ env.BRANCH }}.yml
           cat k8s/${{ env.BRANCH }}.yml
+
+      - name: Push YAML to another GitHub repo
+        if: github.ref != 'refs/heads/staging'
+        env:
+          GIT_USER: reyshazni
+          GIT_TOKEN: ${{ vars.GIT_PAT }}
+          GIT_EMAIL: reyshazni@gmail.com
+        run: |
+          git config --global user.email ${GIT_EMAIL}
+          git config --global user.name ${GIT_USER}
+          git clone https://github.com/antrein/prod-yml.git
+          cp ./k8s/${{ env.BRANCH }}.yml ./prod-yml/${{ env.PROJECT_NAME }}.yml
+          cd ./prod-yml
+          git add .
+          git commit -m "Update Kubernetes YAML file"
+          git push https://${GIT_USER}:${GIT_TOKEN}@github.com/antrein/prod-yml.git
