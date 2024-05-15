@@ -1,6 +1,9 @@
-# src/routes/kubernetes.py
 from fastapi import APIRouter, HTTPException
-from src.logic.kubernetes import create_ns, delete_redirect, get_ns, delete_ns, create_ingress, get_production_deployment, rolling_upgrade, create_redirect, health_check
+from src.logic.kubernetes import (
+    create_ns, delete_redirect, get_ns, delete_ns, 
+    create_ingress, get_production_deployment, rolling_upgrade, 
+    create_redirect, health_check
+)
 from src.models.kubernetes import UrlRedirectRequest
 from dotenv import load_dotenv, dotenv_values
 
@@ -12,77 +15,74 @@ infra_mode = config["INFRA_MODE"]
 # Initialize your API router
 kube_router = APIRouter(tags=["Kubernetes"])
 
-@kube_router.get("/rolling-ugrade", response_model=dict)
+@kube_router.get("/rolling-upgrade", response_model=dict)
 async def rolling_upgrade_project():
     result = rolling_upgrade()
-    print(result)
     if result["success"]:
-        return {"message": "Success upgrade to the latest version."}
+        return {"status": "success", "message": "Success upgrade to the latest version.", "data": {}}
     else:
-        raise HTTPException(status_code=500, detail=result["message"])
+        raise HTTPException(status_code=500, detail={"status": "error", "message": result["message"], "data": {}})
 
 @kube_router.get("/project", response_model=dict)
 async def list_project():
     result = get_ns()
     if result["success"]:
-        return {"data": result["data"]}
+        return {"status": "success", "message": "Projects listed successfully.", "data": result["data"]}
     else:
-        raise HTTPException(status_code=500, detail=result["message"])
+        raise HTTPException(status_code=500, detail={"status": "error", "message": result["message"], "data": {}})
     
 @kube_router.post("/project", status_code=200)
 async def create_project(request: UrlRedirectRequest):
     # Create namespace
     if infra_mode == "multi":
         ns_result = create_ns(request.project_id)
-        
         if not ns_result["success"]:
-            raise HTTPException(status_code=400, detail=ns_result["message"])
+            raise HTTPException(status_code=400, detail={"status": "error", "message": ns_result["message"], "data": {}})
     
     if infra_mode == "multi":
         deploy_result = get_production_deployment(request.project_id)
-
         ingress_result = create_ingress(request.project_id)
     
-    redirect_result = create_redirect(request.project_id,request.project_domain, request.url_path, infra_mode)
+    redirect_result = create_redirect(request.project_id, request.project_domain, request.url_path, infra_mode)
 
     # Rollback
     if not redirect_result["success"]:
         # Attempt to delete namespace if ingress creation fails
         delete_ns(request.project_id)
-        raise HTTPException(status_code=400)
+        raise HTTPException(status_code=400, detail={"status": "error", "message": "Failed to create redirect.", "data": {}})
     
-    return {"message": f"project {request.project_id} created successfully"}
-
+    return {"status": "success", "message": f"Project {request.project_id} created successfully", "data": {}}
 
 @kube_router.delete("/project/{project_id}", status_code=200)
 async def delete_project(project_id: str):
     result = delete_ns(project_id)
     if result["success"]:
-        return {"message": f"project {project_id} deleted successfully"}
+        return {"status": "success", "message": f"Project {project_id} deleted successfully", "data": {}}
     else:
-        raise HTTPException(status_code=400, detail=result["message"])
+        raise HTTPException(status_code=400, detail={"status": "error", "message": result["message"], "data": {}})
 
 @kube_router.delete("/project/redirect/{project_id}", status_code=200)
 async def delete_redirect_router(project_id: str):
     result = delete_redirect(project_id)
     if result["success"]:
-        return {"message": f"project {project_id} deleted successfully"}
+        return {"status": "success", "message": f"Redirect for project {project_id} deleted successfully", "data": {}}
     else:
-        raise HTTPException(status_code=400, detail=result["message"])
+        raise HTTPException(status_code=400, detail={"status": "error", "message": result["message"], "data": {}})
 
 @kube_router.get("/health/{project_id}", response_model=dict)
 async def check_health(project_id: str):
     result = health_check(project_id)
     if not result['success']:
         # If health_check fails to execute properly, provide a detailed error message
-        raise HTTPException(status_code=500, detail=result["message"])
+        raise HTTPException(status_code=500, detail={"status": "error", "message": result["message"], "data": {}})
 
     # Evaluate the total number of deployments
     if result["total_deployments"] == 0:
         # No deployments found in the namespace
         return {
             "status": "failed",
-            "message": "No deployments found in the namespace."
+            "message": "No deployments found in the namespace.",
+            "data": {}
         }
     else:
         # Check if there are non-ready deployments
@@ -91,13 +91,17 @@ async def check_health(project_id: str):
             return {
                 "status": "success",
                 "message": "Some deployments are not ready.",
-                "healthiness": False,
-                "deployment_names": result["non_ready_deployments"]
+                "data": {
+                    "healthiness": False,
+                    "deployment_names": result["non_ready_deployments"]
+                }
             }
         else:
             # All deployments are ready
             return {
                 "status": "success",
                 "message": "All deployments are healthy.",
-                "healthiness": True
+                "data": {
+                    "healthiness": True
+                }
             }
