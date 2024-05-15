@@ -110,16 +110,18 @@ jobs:
           echo '${{ vars.GCP_KUBECONFIG }}' > ./k8s/authorization/kubeconfig.yml
 
       - name: Login Docker
-        run: |
-          gcloud auth print-access-token | docker login -u oauth2accesstoken --password-stdin https://${{ env.GCP_REGION }}-docker.pkg.dev
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
 
       - name: Build and push Docker Image
         run: |
-          DOCKER_PATH="${{ env.GCP_REGION }}-docker.pkg.dev/${{ vars.GCP_PROJECT_ID }}/${{ env.REGISTRY_REPO }}"
           IMAGE_NAME="${{ github.event.repository.name }}-${{ needs.setup-environment.outputs.IMAGE_TAG }}"
-
-          docker build -t $DOCKER_PATH/$IMAGE_NAME .
-          docker push $DOCKER_PATH/$IMAGE_NAME
+          docker build -t reyshazni/$IMAGE_NAME .
+          docker push reyshazni/$IMAGE_NAME
+        env:
+          IMAGE_TAG: ${{ needs.setup-environment.outputs.IMAGE_TAG }}
   
   dockerize-and-push-aws:
     needs: setup-environment
