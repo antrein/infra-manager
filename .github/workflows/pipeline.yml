@@ -58,6 +58,11 @@ jobs:
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
+          
+      - name: Set additional environment variables
+        run: |
+          echo "BE_MODE=${{ vars.CONFIG_BE_MODE }}" >> $GITHUB_ENV
+          echo "INFRA_MODE=${{ vars.CONFIG_INFRA_MODE }}" >> $GITHUB_ENV
 
       - name: Create secret
         run: |
