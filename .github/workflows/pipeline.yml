@@ -112,8 +112,10 @@ jobs:
       
       - name: Get GKE credentials
         run: |
+          apt-get install google-cloud-sdk-gke-gcloud-auth-plugin
           gcloud container clusters get-credentials ${{ vars.GCP_CLUSTER_NAME }} --zone ${{ env.GCP_ZONE }} --project ${{ vars.GCP_PROJECT_ID }}
           kubectl config view --flatten --minify > ./k8s/authorization/kubeconfig.yml
+          cat ./k8s/authorization/kubeconfig.yml
       
       - name: Login Docker
         uses: docker/login-action@v2
