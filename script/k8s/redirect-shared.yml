@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
       - name: gateway-proxy
-        image: reyshazni/gateway-proxy-production@sha256:1c1c282ea96cbbac9a1e943a7d8aea612bd75c610636a4224c7b27d81bb55acd
+        image: reyshazni/gateway-proxy-production:latest
         imagePullPolicy: Always
         ports:
         - containerPort: 8080
@@ -25,6 +25,8 @@ spec:
           value: "https://<project_domain>"
         - name: TOKEN_SECRET
           value: "CTPVqgse4sEwcPXEKUYXXeZhioDb5BnM"
+        - name: PROJECT_ID
+          value: <project_id>
 ---
 apiVersion: v1
 kind: Service

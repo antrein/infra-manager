@@ -25,6 +25,8 @@ spec:
           value: "https://<project_domain>"
         - name: TOKEN_SECRET
           value: "CTPVqgse4sEwcPXEKUYXXeZhioDb5BnM"
+        - name: PROJECT_ID
+          value: <project_id>
 ---
 apiVersion: v1
 kind: Service
