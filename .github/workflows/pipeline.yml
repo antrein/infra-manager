@@ -39,6 +39,20 @@ jobs:
           echo "::set-output name=IMAGE_TAG::${{ env.BRANCH }}:$SHORT_SHA"
           echo "::set-output name=BRANCH::${{ env.BRANCH }}"
 
+      - name: Install Google Cloud SDK and GKE Auth Plugin
+        run: |
+          echo "deb [signed-by=/usr/share/keyrings/cloud.google.gpg] http://packages.cloud.google.com/apt cloud-sdk main" | sudo tee -a /etc/apt/sources.list.d/google-cloud-sdk.list
+          sudo apt-get install apt-transport-https ca-certificates -y
+          curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key --keyring /usr/share/keyrings/cloud.google.gpg add -
+          sudo apt-get update && sudo apt-get install -y google-cloud-sdk google-cloud-sdk-gke-gcloud-auth-plugin
+          gcloud components install gke-gcloud-auth-plugin
+
+      - name: Get GKE credentials
+        run: |
+          gcloud container clusters get-credentials ${{ vars.GCP_CLUSTER_NAME }} --zone ${{ env.GCP_ZONE }} --project ${{ vars.GCP_PROJECT_ID }}
+          kubectl config view --flatten --minify > ./k8s/authorization/kubeconfig.yml
+          cat ./k8s/authorization/kubeconfig.yml
+
   dockerize-and-push-do:
     needs: setup-environment
     if: vars.CLOUD_PLATFORM == 'do'
@@ -109,20 +123,6 @@ jobs:
         run: |
           echo "BE_MODE=${{ vars.CONFIG_BE_MODE }}" >> ./.env
           echo "INFRA_MODE=${{ vars.CONFIG_INFRA_MODE }}" >> ./.env
-
-      - name: Install Google Cloud SDK and GKE Auth Plugin
-        run: |
-          echo "deb [signed-by=/usr/share/keyrings/cloud.google.gpg] http://packages.cloud.google.com/apt cloud-sdk main" | sudo tee -a /etc/apt/sources.list.d/google-cloud-sdk.list
-          sudo apt-get install apt-transport-https ca-certificates -y
-          curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key --keyring /usr/share/keyrings/cloud.google.gpg add -
-          sudo apt-get update && sudo apt-get install -y google-cloud-sdk google-cloud-sdk-gke-gcloud-auth-plugin
-          gcloud components install gke-gcloud-auth-plugin
-      
-      - name: Get GKE credentials
-        run: |
-          gcloud container clusters get-credentials ${{ vars.GCP_CLUSTER_NAME }} --zone ${{ env.GCP_ZONE }} --project ${{ vars.GCP_PROJECT_ID }}
-          kubectl config view --flatten --minify > ./k8s/authorization/kubeconfig.yml
-          cat ./k8s/authorization/kubeconfig.yml
       
       - name: Login Docker
         uses: docker/login-action@v2
