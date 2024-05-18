@@ -112,7 +112,7 @@ jobs:
       
       - name: Get GKE credentials
         run: |
-          gcloud container clusters get-credentials ${{ vars.GCP_CLUSTER_NAME }} --zone ${{ env.GCP_ZONE }} --project ${{ env.project_id }}
+          gcloud container clusters get-credentials ${{ vars.GCP_CLUSTER_NAME }} --zone ${{ vars.GCP_ZONE }} --project ${{ vars.GCP_PROJECT_ID }}
           kubectl config view --flatten --minify > ./k8s/authorization/kubeconfig.yml
 
       - name: Login Docker
