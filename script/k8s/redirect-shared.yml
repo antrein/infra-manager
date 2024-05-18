@@ -22,6 +22,8 @@ spec:
         env:
         - name: SERVICE_URL
           value: "https://<project_domain>"
+        - name: TOKEN_SECRET
+          value: "CTPVqgse4sEwcPXEKUYXXeZhioDb5BnM"
 ---
 apiVersion: v1
 kind: Service
