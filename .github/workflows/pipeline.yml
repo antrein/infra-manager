@@ -105,6 +105,11 @@ jobs:
         run: |
           echo '${{ vars.ENV }}' > ./.env
       
+      - name: Set additional environment variables
+        run: |
+          echo "BE_MODE=${{ vars.CONFIG_BE_MODE }}" >> ./.env
+          echo "INFRA_MODE=${{ vars.CONFIG_INFRA_MODE }}" >> ./.env
+      
       - name: Get GKE credentials
         run: |
           gcloud container clusters get-credentials ${{ vars.GCP_CLUSTER_NAME }} --zone ${{ env.GCP_ZONE }} --project ${{ env.project_id }}
@@ -153,6 +158,11 @@ jobs:
       - name: Create secret
         run: |
           echo '${{ vars.ENV }}' > ./.env
+
+      - name: Set additional environment variables
+        run: |
+          echo "BE_MODE=${{ vars.CONFIG_BE_MODE }}" >> ./.env
+          echo "INFRA_MODE=${{ vars.CONFIG_INFRA_MODE }}" >> ./.env
       
       - name: Create kubeconfig
         run: |
@@ -195,6 +205,11 @@ jobs:
       - name: Create secret
         run: |
           echo '${{ vars.ENV }}' > ./.env
+
+      - name: Set additional environment variables
+        run: |
+          echo "BE_MODE=${{ vars.CONFIG_BE_MODE }}" >> ./.env
+          echo "INFRA_MODE=${{ vars.CONFIG_INFRA_MODE }}" >> ./.env
       
       - name: Create kubeconfig
         run: |
