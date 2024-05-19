@@ -50,6 +50,11 @@ jobs:
       - name: Checkout the repo
         uses: actions/checkout@v2
 
+      - id: auth
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ vars.GCP_SA_KEY }}
+
       - name: Pass env
         id: set-env
         run: |
@@ -62,43 +67,34 @@ jobs:
       
       - name: Set additional environment variables
         run: |
-          echo "BE_MODE=${{ vars.CONFIG_BE_MODE }}" >> ./.env
+          echo "BE_MODE=${{ vars.GCP_SA_KEY }}" >> ./.env
           echo "INFRA_MODE=${{ vars.CONFIG_INFRA_MODE }}" >> ./.env
+          echo "CLOUD_PLATFORM=${{ vars.CLOUD_PLATFORM }}" >> ./.env
 
-      - name: Create kubeconfig
+          echo "GCP_PROJECT_ID=${{ vars.GCP_PROJECT_ID }}" >> ./.env
+          echo "GCP_CLUSTER_NAME=${{ vars.GCP_CLUSTER_NAME }}" >> ./.env
+          echo "GCP_ZONE=${{ vars.GCP_ZONE }}" >> ./.env
+
+      - name: Set Service Account
         run: |
-          mkdir -p ~/.kube
-          echo "
-          apiVersion: v1
-          kind: Config
-          clusters:
-          - cluster:
-              certificate-authority-data: $(gcloud container clusters describe ${{ vars.GCP_CLUSTER_NAME }} --zone ${{ env.GCP_ZONE }} --format='value(masterAuth.clusterCaCertificate)')
-              server: $(gcloud container clusters describe ${{ vars.GCP_CLUSTER_NAME }} --zone ${{ env.GCP_ZONE }} --format='value(endpoint)')
-            name: gke_${{ vars.GCP_PROJECT_ID }}_${{ env.GCP_ZONE }}_${{ vars.GCP_CLUSTER_NAME }}
-          contexts:
-          - context:
-              cluster: gke_${{ vars.GCP_PROJECT_ID }}_${{ env.GCP_ZONE }}_${{ vars.GCP_CLUSTER_NAME }}
-              user: github-actions
-            name: gke_${{ vars.GCP_PROJECT_ID }}_${{ env.GCP_ZONE }}_${{ vars.GCP_CLUSTER_NAME }}
-          current-context: gke_${{ vars.GCP_PROJECT_ID }}_${{ env.GCP_ZONE }}_${{ vars.GCP_CLUSTER_NAME }}
-          users:
-          - name: github-actions
-            user:
-              token: ${{ vars.GCP_CLUSTER_TOKEN }}
-          " > ./k8s/authorization/kubeconfig.yml
-          cat ./k8s/authorization/kubeconfig.yml
+          echo "${{ vars.CONFIG_BE_MODE }}" >> service-account/gcp.json
 
+      - name: Connect to cluster
+        uses: google-github-actions/get-gke-credentials@v2
+        with:
+          cluster_name: ${{ vars.GCP_CLUSTER_NAME }}
+          location: ${{ env.GCP_ZONE }}
+      
       # - name: Get GKE credentials
       #   run: |
       #     kubectl config view --flatten --minify > ./k8s/authorization/kubeconfig.yml
       #     cat ./k8s/authorization/kubeconfig.yml
       
-      - name: Login Docker
-        uses: docker/login-action@v2
-        with:
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
+      # - name: Login Docker
+      #   uses: docker/login-action@v2
+      #   with:
+      #     username: ${{ secrets.DOCKER_USERNAME }}
+      #     password: ${{ secrets.DOCKER_PASSWORD }}
 
       - name: Build and push Docker Image
         run: |

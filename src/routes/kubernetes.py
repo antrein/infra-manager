@@ -4,6 +4,7 @@ from src.logic.kubernetes import (
     create_ingress, get_production_deployment, rolling_upgrade, 
     create_redirect, health_check
 )
+from src.services.refresh_token import refresh_kubectl_token
 from src.models.kubernetes import UrlRedirectRequest
 from dotenv import load_dotenv, dotenv_values
 
