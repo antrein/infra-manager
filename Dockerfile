@@ -8,7 +8,7 @@ WORKDIR /app
 COPY . /app
 
 # Install dependencies yang diperlukan untuk kubectl dan gcloud CLI
-RUN apk add --no-cache curl gnupg bash git
+RUN apk add --no-cache curl gnupg bash git google-cloud-sdk-gke-gcloud-auth-plugin
 
 RUN apk add --no-cache --virtual .pynacl_deps build-base python3-dev libffi-dev
 
