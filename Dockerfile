@@ -24,10 +24,10 @@ RUN curl -O https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cl
     rm google-cloud-sdk-372.0.0-linux-x86_64.tar.gz
 
 
-# Set environment variables for gcloud
-ENV PATH="/app/google-cloud-sdk/bin:$PATH"
+# # Set environment variables for gcloud
+# ENV PATH="/app/google-cloud-sdk/bin:$PATH"
 
-RUN gcloud components install gke-gcloud-auth-plugin
+# RUN gcloud components install gke-gcloud-auth-plugin
 
 # Melakukan upgrade pip untuk memastikan semua requirements dapat terinstall
 RUN python -m pip install --upgrade pip

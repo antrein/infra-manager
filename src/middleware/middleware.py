@@ -10,7 +10,7 @@ class RefreshTokenMiddleware(BaseHTTPMiddleware):
 
     async def dispatch(self, request: Request, call_next):
         # Call the function to refresh the kubectl token
-        refresh_kubectl_token()
+        # refresh_kubectl_token()
         # Proceed with the request
         response = await call_next(request)
         return response

@@ -75,10 +75,10 @@ jobs:
           echo "GCP_CLUSTER_NAME=${{ vars.GCP_CLUSTER_NAME }}" >> ./.env
           echo "GCP_ZONE=${{ vars.GCP_ZONE }}" >> ./.env
 
-      - name: Set Service Account
-        run: |
-          echo '${{ vars.GCP_SA_KEY }}' > service-account/gcp.json
-          cat service-account/gcp.json
+      # - name: Set Service Account
+      #   run: |
+      #     echo '${{ vars.GCP_SA_KEY }}' > service-account/gcp.json
+      #     cat service-account/gcp.json
 
       - name: Connect to cluster
         uses: google-github-actions/get-gke-credentials@v2
@@ -86,10 +86,10 @@ jobs:
           cluster_name: ${{ vars.GCP_CLUSTER_NAME }}
           location: ${{ env.GCP_ZONE }}
       
-      # - name: Get GKE credentials
-      #   run: |
-      #     kubectl config view --flatten --minify > ./k8s/authorization/kubeconfig.yml
-      #     cat ./k8s/authorization/kubeconfig.yml
+      - name: Get GKE credentials
+        run: |
+          kubectl config view --flatten --minify > ./k8s/authorization/kubeconfig.yml
+          cat ./k8s/authorization/kubeconfig.yml
       
       - name: Login Docker
         uses: docker/login-action@v2
