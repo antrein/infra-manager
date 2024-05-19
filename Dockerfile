@@ -21,8 +21,9 @@ RUN curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/s
 RUN curl -O https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud-sdk-372.0.0-linux-x86_64.tar.gz && \
     tar -xzf google-cloud-sdk-372.0.0-linux-x86_64.tar.gz && \
     ./google-cloud-sdk/install.sh --quiet && \
-    rm google-cloud-sdk-372.0.0-linux-x86_64.tar.gz && \
-    gcloud components install gke-gcloud-auth-plugin
+    rm google-cloud-sdk-372.0.0-linux-x86_64.tar.gz
+
+RUN gcloud components install gke-gcloud-auth-plugin
 
 # Set environment variables for gcloud
 ENV PATH="/app/google-cloud-sdk/bin:$PATH"
