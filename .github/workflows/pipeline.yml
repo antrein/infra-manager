@@ -183,7 +183,9 @@ jobs:
           echo "GCP_PROJECT_ID=${{ vars.GCP_PROJECT_ID }}" >> ./.env
           echo "GCP_CLUSTER_NAME=${{ vars.GCP_CLUSTER_NAME }}" >> ./.env
           echo "GCP_ZONE=${{ vars.GCP_ZONE }}" >> ./.env
-          
+
+          cat ./.env
+
       - name: Create kubeconfig
         run: |
           echo '${{ vars.AZURE_KUBECONFIG }}' > ./k8s/authorization/kubeconfig.yml
