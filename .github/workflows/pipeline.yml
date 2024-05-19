@@ -294,7 +294,8 @@ jobs:
           sed -i "s|<PORT>|${{ env.PORT }}|g" k8s/${{ env.BRANCH }}.yml
           cat k8s/${{ env.BRANCH }}.yml
 
-  restart-infra-manager:
+  restart-infra-manager-gcp:
+    needs: deploy-to-server-gcp
     if: vars.CLOUD_PLATFORM == 'gcp' && github.event_name == 'schedule'
     runs-on: ubuntu-latest
     steps:
