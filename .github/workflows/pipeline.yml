@@ -295,7 +295,7 @@ jobs:
           cat k8s/${{ env.BRANCH }}.yml
 
   restart-infra-manager:
-    if: vars.CLOUD_PLATFORM == 'gcp' && (github.event_name == 'push' || github.event_name == 'schedule' || github.event_name == 'pull_request')
+    if: vars.CLOUD_PLATFORM == 'gcp' && github.event_name == 'schedule'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout the repo
