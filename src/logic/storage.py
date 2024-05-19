@@ -12,7 +12,7 @@ MAX_FILE_SIZE_MB = 30
 MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024
 
 def get_gcs_client():
-    key_path = "./service-account/gcp.json"
+    key_path = "service-account/gcp.json"
     credentials = service_account.Credentials.from_service_account_file(key_path)
     return storage.Client(credentials=credentials)
 
