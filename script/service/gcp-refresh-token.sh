@@ -3,7 +3,6 @@ PROJECT_ID={{project_id}}
 CLUSTER_NAME={{cluster_name}}
 ZONE={{zone}}
 
-
 # Authenticate gcloud with the service account
 gcloud auth activate-service-account --key-file=service-account/gcp.json
 
