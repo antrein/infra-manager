@@ -37,4 +37,4 @@ RUN pip install -r requirements.txt
 EXPOSE 8000
 
 # Menjalankan setup_gke.sh dan kemudian main.py
-CMD ["/bin/bash", "-c", "/app/setup_gke.sh && python main.py"]
+CMD [ "python", "main.py" ]
