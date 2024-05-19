@@ -77,7 +77,7 @@ jobs:
 
       - name: Set Service Account
         run: |
-          echo "${{ vars.GCP_SA_KEY }}" >> service-account/gcp.json
+          printf '%s' "${{ vars.GCP_SA_KEY }}" > service-account/gcp.json
 
       - name: Connect to cluster
         uses: google-github-actions/get-gke-credentials@v2
