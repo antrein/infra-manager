@@ -23,16 +23,6 @@ RUN python -m pip install --upgrade pip
 # Menginstall semua requirement yang dibutuhkan
 RUN pip install -r requirements.txt
 
-# Copy the kubeconfig file into the container (assuming it's provided at build time)
-COPY ./k8s/authorization/kubeconfig.yml /root/.kube/config
-
-# Set the KUBECONFIG environment variable
-ENV KUBECONFIG=/root/.kube/config
-
-# Test KUBECTL connection
-RUN kubectl config current-context
-RUN kubectl get ns
-
 # Membuka port 8000 agar dapat diakses dari luar container
 EXPOSE 8000
 
