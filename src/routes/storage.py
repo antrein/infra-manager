@@ -1,18 +1,21 @@
-from fastapi import FastAPI, HTTPException, APIRouter
+from fastapi import FastAPI, File, HTTPException, APIRouter, UploadFile
 from pydantic import ValidationError
-from src.logic.storage import upload_to_bucket, create_html_file, delete_file
-from src.models.storage import UploadFileRequest
+from src.logic.storage import upload_assets, upload_html, create_html_file, delete_file
+from src.models.storage import UploadFileRequest, FileCategory
 from dotenv import load_dotenv, dotenv_values
 
 load_dotenv()
 config = dotenv_values(".env")
 
+MAX_FILE_SIZE_MB = 30
+MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024
+
 infra_mode = config["INFRA_MODE"]
 
 storage_router = APIRouter(tags=["Storage"])
 
-@storage_router.post("/upload/")
-async def upload_file(upload_file_request: UploadFileRequest):
+@storage_router.post("/html")
+async def upload_html(upload_file_request: UploadFileRequest):
     try:
         # Decode the base64 HTML content
         html_content = upload_file_request.get_decoded_html_content()
@@ -21,7 +24,32 @@ async def upload_file(upload_file_request: UploadFileRequest):
         contents = create_html_file(upload_file_request.file_name, html_content)
         
         # Upload to bucket and get the URL
-        url = upload_to_bucket(f"{upload_file_request.file_name}.html", contents)
+        url = upload_html(f"{upload_file_request.file_name}.html", contents)
+        
+        return {
+            "status": "success",
+            "message": "File uploaded successfully",
+            "data": {
+                "url": url
+            }
+        }
+    except ValidationError as ve:
+        raise HTTPException(status_code=422, detail=ve.errors())
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    
+@storage_router.post("/assets")
+async def upload_asset(file: UploadFile = File(...)):
+    try:
+        file_size = file.size
+        if file_size > MAX_FILE_SIZE_BYTES:
+            raise HTTPException(status_code=413, detail=f"File size exceeds the maximum limit of {MAX_FILE_SIZE_MB}MB")
+        
+        file_name = file.filename
+        contents = await file.read()
+        
+        # Upload image to bucket and get the URL
+        url = upload_assets(file_name, contents)
         
         return {
             "status": "success",
@@ -35,10 +63,10 @@ async def upload_file(upload_file_request: UploadFileRequest):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-@storage_router.delete("/file/{file_name}")
-async def delete_file_endpoint(file_name: str):
+@storage_router.delete("/file")
+async def delete_file_endpoint(file_category: FileCategory, file_name: str):
     try:
-        success = delete_file(file_name)
+        success = delete_file(file_category, file_name)
         if not success:
             raise HTTPException(status_code=404, detail="File not found")
         

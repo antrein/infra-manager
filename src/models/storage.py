@@ -1,7 +1,12 @@
 from pydantic import BaseModel, Field, validator
 import re
+from enum import Enum
 from bs4 import BeautifulSoup
 import base64
+
+class FileCategory(str, Enum):
+    assets = "assets"
+    html = "html"
 
 class UploadFileRequest(BaseModel):
     file_name: str = Field(..., description="Alphanumeric with no spaces")
@@ -28,3 +33,4 @@ class UploadFileRequest(BaseModel):
 
     def get_decoded_html_content(self):
         return base64.b64decode(self.html_base64).decode('utf-8')
+    

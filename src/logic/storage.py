@@ -1,31 +1,31 @@
 from google.cloud import storage
 from google.oauth2 import service_account
 from google.api_core.exceptions import NotFound
+import io
 
 bucket_name = "antrein-ta"
-folder = "html_templates"
 
-def upload_to_bucket(file_name, contents):
-    # Path to your service account key file
+def upload_html(file_name, contents):
     key_path = "./service-account/gcp.json"
-    
-    # Authenticate the client with your service account
     credentials = service_account.Credentials.from_service_account_file(key_path)
     client = storage.Client(credentials=credentials)
-    
-    # Get the bucket
     bucket = client.bucket(bucket_name)
-    
-    # Create a new blob with the specified folder path and upload the file's content to Google Cloud Storage
-    blob = bucket.blob(f"{folder}/{file_name}")
+    blob = bucket.blob(f"html_templates/{file_name}")
     blob.upload_from_string(contents, content_type='text/html')
-    
-    # Construct the URL of the uploaded file
-    url = f"https://storage.googleapis.com/{bucket_name}/{folder}/{file_name}"
-    
+    url = f"https://storage.googleapis.com/{bucket_name}/html_templates/{file_name}"
     return url
 
-def delete_file(file_name: str) -> bool:
+def upload_assets(file_name, contents):
+    key_path = "./service-account/gcp.json"
+    credentials = service_account.Credentials.from_service_account_file(key_path)
+    client = storage.Client(credentials=credentials)
+    bucket = client.bucket(bucket_name)
+    blob = bucket.blob(f"assets/{file_name}")
+    blob.upload_from_file(io.BytesIO(contents))
+    url = f"https://storage.googleapis.com/{bucket_name}/assets/{file_name}"
+    return url
+
+def delete_file(file_category: str, file_name: str) -> bool:
     # Path to your service account key file
     key_path = "./service-account/gcp.json"
     
@@ -35,9 +35,14 @@ def delete_file(file_name: str) -> bool:
     
     # Get the bucket
     bucket = client.bucket(bucket_name)
+
+    if file_category == "html":
+        folder = "html_templates"
+    else:
+        folder = "assets"
     
     # Create a new blob with the specified folder path
-    blob = bucket.blob(f"{folder}/{file_name}.html")
+    blob = bucket.blob(f"{folder}/{file_name}")
     
     # Delete the file
     try:
