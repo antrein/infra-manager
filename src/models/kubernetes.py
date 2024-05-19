@@ -16,8 +16,8 @@ class UrlRedirectRequest(BaseModel):
             raise ValueError('Domain must not start or end with a slash')
 
         # Enhanced regular expression for validating a domain name with at least one dot
-        if not re.match(r'^[a-zA-Z\d-]{1,63}(\.[a-zA-Z\d-]{1,63})+$', v):
-            raise ValueError('Invalid domain format')
+        # if not re.match(r'^[a-zA-Z\d-]{1,63}(\.[a-zA-Z\d-]{1,63})+$', v):
+        #     raise ValueError('Invalid domain format')
 
         return v
 
