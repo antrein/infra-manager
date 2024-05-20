@@ -28,7 +28,7 @@ env:
 
 jobs:
   setup-environment:
-    if: github.event.pull_request.merged == false
+    if: github.event.pull_request.merged == false && (github.event_name == 'push' || github.event_name == 'schedule' || github.event_name == 'pull_request')
     runs-on: ubuntu-latest
     outputs:
       IMAGE_TAG: ${{ steps.set-env.outputs.IMAGE_TAG }}
@@ -38,7 +38,8 @@ jobs:
         id: set-env
         run: |
           SHORT_SHA=$(echo "${{ github.sha }}" | cut -c1-7)
-          echo "::set-output name=IMAGE_TAG::${{ env.BRANCH }}:$SHORT_SHA"
+          RANDOM_SUFFIX=$(openssl rand -hex 3)
+          echo "::set-output name=IMAGE_TAG::${SHORT_SHA}_${RANDOM_SUFFIX}"
           echo "::set-output name=BRANCH::${{ env.BRANCH }}"
 
   dockerize-and-push-gcp:
