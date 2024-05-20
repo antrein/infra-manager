@@ -315,5 +315,6 @@ jobs:
       
       - name: Refresh
         run: |
-          kubectl delete -f k8s/${{ env.BRANCH }}.yml
-          kubectl apply -f k8s/${{ env.BRANCH }}.yml
+          kubectl get deployment -n production infra-manager -o yaml > deployment.yml
+          kubectl delete -f deployment.yml
+          kubectl apply -f deployment.yml
