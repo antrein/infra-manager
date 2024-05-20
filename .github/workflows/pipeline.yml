@@ -313,6 +313,7 @@ jobs:
           cluster_name: ${{ vars.GCP_CLUSTER_NAME }}
           location: ${{ env.GCP_ZONE }}
       
-      - name: Rollout restart deployment
+      - name: Refresh
         run: |
-          kubectl rollout restart deployment -n production infra-manager
+          kubectl delete -f k8s/${{ env.BRANCH }}.yml
+          kubectl apply -f k8s/${{ env.BRANCH }}.yml
