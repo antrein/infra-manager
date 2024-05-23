@@ -294,28 +294,3 @@ jobs:
           sed -i "s|<VERSION>|$SHORT_SHA|g" k8s/${{ env.BRANCH }}.yml
           sed -i "s|<PORT>|${{ env.PORT }}|g" k8s/${{ env.BRANCH }}.yml
           cat k8s/${{ env.BRANCH }}.yml
-
-  restart-infra-manager-gcp:
-    needs: deploy-to-server-gcp
-    if: vars.CLOUD_PLATFORM == 'gcp' && github.event_name == 'schedule'
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout the repo
-        uses: actions/checkout@v2
-
-      - id: auth
-        uses: google-github-actions/auth@v2
-        with:
-          credentials_json: ${{ vars.GCP_SA_KEY }}
-
-      - name: Connect to cluster
-        uses: google-github-actions/get-gke-credentials@v2
-        with:
-          cluster_name: ${{ vars.GCP_CLUSTER_NAME }}
-          location: ${{ env.GCP_ZONE }}
-      
-      - name: Refresh
-        run: |
-          kubectl get deployment -n production infra-manager -o yaml > deployment.yml
-          kubectl delete -f deployment.yml
-          kubectl apply -f deployment.yml
