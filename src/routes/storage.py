@@ -29,18 +29,19 @@ async def upload_html_file(upload_file_request: UploadFileRequest):
 @storage_router.post("/assets")
 async def upload_asset(file: UploadFile = File(...)):
     try:
-        file_size = file.size
+        contents = await file.read()
+        file_size = len(contents)
         if file_size > MAX_FILE_SIZE_BYTES:
             raise HTTPException(status_code=413, detail=f"File size exceeds the maximum limit of {MAX_FILE_SIZE_MB}MB")
         
         file_name = file.filename
-        contents = await file.read()
         url = upload_assets(file_name, contents)
         return {"status": "success", "message": "File uploaded successfully", "data": {"url": url}}
     except ValidationError as ve:
         raise HTTPException(status_code=422, detail=ve.errors())
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
 
 @storage_router.delete("/file")
 async def delete_file_endpoint(file_category: FileCategory, file_name: str):

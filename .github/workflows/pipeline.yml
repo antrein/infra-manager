@@ -78,9 +78,9 @@ jobs:
           echo "GCP_CLUSTER_NAME=${{ vars.GCP_CLUSTER_NAME }}" >> ./.env
           echo "GCP_ZONE=${{ vars.GCP_ZONE }}" >> ./.env
 
-      - name: Test secret
+      - name: Set service account
         run: |
-          cat ./.env
+          echo '${{ vars.GCP_SA_KEY }}' >> service-account/gcp.json
 
       - name: Connect to cluster
         uses: google-github-actions/get-gke-credentials@v2
