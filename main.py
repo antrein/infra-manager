@@ -16,7 +16,7 @@ config = dotenv_values(".env")
 
 app = FastAPI()
 
-app.add_middleware(RefreshTokenMiddleware)
+# app.add_middleware(RefreshTokenMiddleware)
 
 app.include_router(kube_router, prefix="/kube")
 app.include_router(storage_router, prefix="/storage")
