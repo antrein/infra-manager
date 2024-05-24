@@ -1,5 +1,5 @@
 # src/logic/kubernetes.py
-from src.services.shell import replace_and_run_shell, run_shell
+from src.services.shell import replace_and_run_shell
 from dotenv import load_dotenv, dotenv_values
 
 
@@ -15,9 +15,11 @@ gcp_zone = config["GCP_ZONE"]
 def refresh_kubectl_token():
     if cloud_platform == "gcp":
         script_path = 'script/service/gcp-refresh-token.sh'
+
+        replacements = {'{{project_id}}': gcp_project_id, '{{cluster_name}}': gcp_cluster_name, '{{project_id}}': gcp_zone}
         
         # Run the script with the namespace dynamically replaced
-        result = run_shell(script_path)
+        result = replace_and_run_shell(script_path, replacements)
 
         print(result)
         if not result['success']:
