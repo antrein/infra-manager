@@ -17,6 +17,18 @@ RUN curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/s
     && install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl \
     && rm kubectl
 
+# Install gcloud SDK
+RUN curl -sSL https://sdk.cloud.google.com | bash
+
+# Add gcloud to PATH
+RUN export PATH=$PATH:/root/google-cloud-sdk/bin
+
+# Install kubectl
+RUN gcloud components install kubectl
+
+# Install gke-gcloud-auth-plugin
+RUN gcloud components install gke-gcloud-auth-plugin
+
 # Melakukan upgrade pip untuk memastikan semua requirements dapat terinstall
 RUN python -m pip install --upgrade pip
 

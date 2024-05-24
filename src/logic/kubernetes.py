@@ -20,6 +20,9 @@ def get_ns():
         output = run_shell(script_path)
         non_project_ns = ["cert-manager", "default", "ingress-nginx", "kube-node-lease", "kube-public", "kube-system", "production", "staging"]
 
+        print("NS Output: ")
+        print(output.strip())
+
         if infra_mode == "shared":
             if output:
                 namespaces = output.strip().split('\n')[1:]  # Skip header
