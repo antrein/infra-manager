@@ -12,8 +12,6 @@ on:
       - main
       - staging
     types: [closed]
-  schedule:
-    - cron: '0 */2 * * *'  # Run every 2 hours
 
 env:
   project_id: ${{ github.event.repository.name }}

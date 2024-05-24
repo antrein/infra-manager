@@ -8,9 +8,9 @@ WORKDIR /app
 COPY . /app
 
 # Menginstall dependencies yang diperlukan untuk kubectl dan cron
-RUN apk add --no-cache curl gnupg bash git
+RUN apk add --no-cache curl gnupg bash git busybox
+
 RUN apk add --no-cache --virtual .pynacl_deps build-base python3-dev libffi-dev
-RUN apk add --no-cache crond
 
 # Menginstall kubectl
 RUN curl -sLO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl" \
@@ -38,8 +38,11 @@ ENV KUBECONFIG=/root/.kube/config
 # Setup the cron job
 RUN echo "0 * * * * /bin/bash /app/script/service/gcp-refresh-token.sh >> /var/log/cron.log 2>&1" > /etc/crontabs/root
 
+# Run the gcp-refresh-token.sh script during the build process
+RUN /bin/bash /app/script/service/gcp-refresh-token.sh
+
+# Ensure crond is running
+CMD ["sh", "-c", "crond && python main.py"]
+
 # Membuka port 8000 agar dapat diakses dari luar container
 EXPOSE 8000
-
-# Start cron, run the initial script, and then start the FastAPI application
-CMD crond && /bin/bash /app/script/service/gcp-refresh-token.sh && python main.py
