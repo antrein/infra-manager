@@ -37,7 +37,9 @@ def schedule_jobs():
         time.sleep(1)
 
 if __name__ == '__main__':
-    refresh_kubectl_token()
+    # COMMENT THIS WHEN RUNNING IN LOCAL
+    # refresh_kubectl_token()
+    
     # Run the scheduler in a separate thread
     scheduler_thread = threading.Thread(target=schedule_jobs)
     scheduler_thread.daemon = True
