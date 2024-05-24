@@ -1,11 +1,11 @@
 from fastapi import APIRouter, HTTPException
 from src.logic.kubernetes import (
     create_ns, delete_redirect, get_ns, delete_ns, 
-    create_ingress, get_production_deployment, rolling_upgrade, 
-    create_redirect, health_check
+    create_ingress, get_production_deployment, restart_kube, rolling_upgrade, 
+    create_redirect, health_check, spin_up
 )
 from src.services.refresh_token import refresh_kubectl_token
-from src.models.kubernetes import UrlRedirectRequest
+from src.models.kubernetes import RestartCategory, UrlRedirectRequest, RestartRequest
 from dotenv import load_dotenv, dotenv_values
 
 load_dotenv()
@@ -53,6 +53,14 @@ async def create_project(request: UrlRedirectRequest):
         raise HTTPException(status_code=400, detail={"status": "error", "message": "Failed to create redirect.", "data": {}})
     
     return {"status": "success", "message": f"Project {request.project_id} created successfully", "data": {}}
+
+@kube_router.delete("/restart/{category}", status_code=200)
+async def restart(category: RestartCategory):
+    result = restart_kube(category)
+    if result["success"]:
+        return {"status": "success", "message": "All projects have been processed successfully", "data": result.get("results", [])}
+    else:
+        return {"status": "failure", "message": result.get("message", "Unknown error occurred"), "data": {}}
 
 @kube_router.delete("/project/{project_id}", status_code=200)
 async def delete_project(project_id: str):
@@ -106,3 +114,12 @@ async def check_health(project_id: str):
                     "healthiness": True
                 }
             }
+
+
+@kube_router.post("/spin-up", response_model=dict)
+async def spin_up_project():
+    result = spin_up()
+    if result["success"]:
+        return {"status": "success", "message": "Spin-up process completed successfully", "data": result["data"]}
+    else:
+        raise HTTPException(status_code=500, detail={"status": "error", "message": result["message"], "data": {}})

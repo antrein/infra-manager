@@ -3,6 +3,10 @@ from enum import Enum
 from pydantic import BaseModel, Field, validator
 import re
 
+class RestartCategory(str, Enum):
+    project = "project"
+    all = "all"
+
 class UrlRedirectRequest(BaseModel):
     project_id: str
     project_domain: str = Field(...)
@@ -40,3 +44,6 @@ class UrlRedirectRequest(BaseModel):
         if not v.lower() == v:
             raise ValueError('Project ID must be in lowercase')
         return v
+    
+class RestartRequest(BaseModel):
+    category: RestartCategory

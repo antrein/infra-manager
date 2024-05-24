@@ -11,6 +11,13 @@ def run_shell(script_path):
         print(f"Error: {e.stderr}")
         return None
     
+def run_script(command):
+    try:
+        result = subprocess.run(command, shell=True, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        return {"success": True, "output": result.stdout.decode('utf-8').strip()}
+    except subprocess.CalledProcessError as e:
+        return {"success": False, "error": e.stderr.decode('utf-8').strip()}
+    
 def replace_and_run_shell(script_path, replacements):
     # Read the script file
     with open(script_path, 'r') as file:

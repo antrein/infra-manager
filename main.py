@@ -23,6 +23,5 @@ async def home():
     return {"message": "Antrein Infrastructure Manager", "infra_mode": config["INFRA_MODE"], "be_mode": config["BE_MODE"]}
 
 if __name__ == '__main__':
-    refresh_kubectl_token()
     uvicorn.run('main:app', host='0.0.0.0', port=8000,
                 log_level="info")

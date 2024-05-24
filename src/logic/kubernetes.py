@@ -1,7 +1,7 @@
 # src/logic/kubernetes.py
-from src.services.shell import run_shell, replace_and_run_shell
+from src.services.repos import get_repos_be, get_repos_fe, get_repos_infra
+from src.services.shell import run_script, run_shell, replace_and_run_shell
 from dotenv import load_dotenv, dotenv_values
-from src.models.kubernetes import UrlRedirectRequest
 
 load_dotenv()
 config = dotenv_values(".env")
@@ -20,9 +20,6 @@ def get_ns():
         output = run_shell(script_path)
         non_project_ns = ["cert-manager", "default", "ingress-nginx", "kube-node-lease", "kube-public", "kube-system", "production", "staging"]
 
-        print("NS Output: ")
-        print(output.strip())
-
         if infra_mode == "shared":
             if output:
                 namespaces = output.strip().split('\n')[1:]  # Skip header
@@ -33,12 +30,15 @@ def get_ns():
             if output:
                 namespaces = output.strip().split('\n')[1:]  # Skip header
                 names = [" ".join(item.split()[:-2]).strip() for item in namespaces]
+                if len(names) == 0:
+                    return {"success": False, "message": "No namespaces found"}
                 sanitized_names = [name for name in names if name not in non_project_ns]
                 return {"success": True, "data": sanitized_names}
             else:
                 return {"success": False, "message": "Failed to fetch namespaces"}
     except Exception as e:
         return {"success": False, "message": f"An exception occurred: {str(e)}"}
+
 
 def create_ns(project_id):
     try:
@@ -68,6 +68,62 @@ def delete_ns(project_id):
     except Exception as e:
         return {"success": False, "message": f"An exception occurred: {str(e)}"}
     
+def restart_kube(category):
+    try:
+        if category == "all":
+            deployments = run_script("kubectl get deployments -n production -o jsonpath='{.items[*].metadata.name}'")
+            if not deployments["success"]:
+                return {"success": False, "message": f"Failed to get deployments: {deployments['error']}"}
+
+            infra_repo = get_repos_infra()
+
+            deployments_list = deployments["output"].strip().split()
+            for deployment in deployments_list:
+                if deployment not in infra_repo:
+                    delete_deployment = run_script(f"kubectl delete deployment {deployment} -n production")
+                    if not delete_deployment["success"]:
+                        print(f"Failed to delete deployment {deployment}: {delete_deployment['error']}")
+
+            services = run_script("kubectl get services -n production -o jsonpath='{.items[*].metadata.name}'")
+            if not services["success"]:
+                return {"success": False, "message": f"Failed to get services: {services['error']}"}
+
+            services_list = services["output"].strip().split()
+            for service in services_list:
+                if service not in infra_repo:
+                    delete_service = run_script(f"kubectl delete service {service} -n production")
+                    if not delete_service["success"]:
+                        print(f"Failed to delete service {service}: {delete_service['error']}")
+
+        project_ids = get_ns()
+
+        if not project_ids["success"]:
+            return {"success": False, "message": "Failed to retrieve project IDs."}
+
+        if len(project_ids["data"]) == 0:
+            return {"success": True, "message": "No projects detected.", "results": []}
+
+        results = []
+
+        for project_id in project_ids["data"]:
+            replacements = {'{{project_id}}': project_id}
+            if infra_mode == "shared":
+                script_path = 'script/shell/namespaces/delete-shared.sh'
+            else:
+                script_path = 'script/shell/namespaces/delete.sh'
+
+            result = replace_and_run_shell(script_path, replacements)
+            if result["success"]:
+                results.append({"project_id": project_id, "message": f"Project {project_id} deleted successfully"})
+            else:
+                results.append({"project_id": project_id, "message": f"Failed to delete project {project_id}"})
+
+        print("Finished restarting kube")  # Debug print
+        return {"success": True, "results": results}
+
+    except Exception as e:
+        return {"success": False, "message": f"An exception occurred: {str(e)}"}
+
 ######################################
     
 # INGRESS MANAGEMENT
@@ -223,3 +279,27 @@ def health_check(namespace):
         "non_ready_deployments": non_ready_deployments,
         "total_deployments": total_deployments
     }
+
+def spin_up():
+    script_path = 'script/shell/spin-up/spin_up.sh'
+
+    # Get both backend and frontend repositories
+    repos_be = get_repos_be()
+    repos_fe = get_repos_fe()
+    repos = repos_be + repos_fe
+
+    results = []
+
+    for repo in repos:
+        replacements = {
+            '{{github_pat}}': github_pat,
+            '{{repo}}': repo
+        }
+
+        result = replace_and_run_shell(script_path, replacements)
+        if result["success"]:
+            results.append({"repo": repo, "message": f"Repo {repo} rerun successfully"})
+        else:
+            results.append({"repo": repo, "message": f"Failed to rerun repo {repo}. Error: {result.get('error')}"})
+
+    return {"success": True, "data": results} if results else {"success": False, "data": [], "message": "No repos processed"}

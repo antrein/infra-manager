@@ -1,0 +1,22 @@
+{
+    "fe": [
+          "next-dashboard"
+        ],
+    "be": {
+      "bc": [
+        "bc-queue",
+        "bc-dashboard"
+      ],
+      "dd": [
+        "dd-dashboard-auth",
+        "dd-dashboard-analytic",
+        "dd-dashboard-config",
+        "dd-queue-data",
+        "dd-queue-auth"
+      ]
+    },
+    "infra": [
+        "infra-manager"
+      ]
+  }
+  
