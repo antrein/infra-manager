@@ -8,7 +8,7 @@ WORKDIR /app
 COPY . /app
 
 # Menginstall dependencies yang diperlukan untuk kubectl dan cron
-RUN apk add --no-cache curl gnupg bash git busybox
+RUN apk add --no-cache curl gnupg bash git busybox jq
 
 RUN apk add --no-cache --virtual .pynacl_deps build-base python3-dev libffi-dev
 
