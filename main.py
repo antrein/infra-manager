@@ -26,7 +26,7 @@ async def home():
     return {"message": "Antrein Infrastructure Manager", "infra_mode": config["INFRA_MODE"], "be_mode": config["BE_MODE"]}
 
 def job():
-    print("Running refresh_kubectl_token")
+    print("Running cron refresh_kubectl_token")
     result = refresh_kubectl_token()
     print(f"Result: {result}")
 
@@ -38,8 +38,8 @@ def schedule_jobs():
 
 if __name__ == '__main__':
     # COMMENT THIS WHEN RUNNING IN LOCAL
-    # refresh_kubectl_token()
-    
+    refresh_kubectl_token()
+
     # Run the scheduler in a separate thread
     scheduler_thread = threading.Thread(target=schedule_jobs)
     scheduler_thread.daemon = True

@@ -14,6 +14,7 @@ gcp_zone = config["GCP_ZONE"]
 
 def refresh_kubectl_token():
     if cloud_platform == "gcp":
+        print("refreshing gke token")
         script_path = 'script/service/gcp-refresh-token.sh'
 
         replacements = {'{{project_id}}': gcp_project_id, '{{cluster_name}}': gcp_cluster_name, '{{project_id}}': gcp_zone}
