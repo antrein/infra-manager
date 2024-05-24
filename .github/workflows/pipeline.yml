@@ -28,7 +28,7 @@ env:
 
 jobs:
   setup-environment:
-    if: github.event.pull_request.merged == false && (github.event_name == 'push' || github.event_name == 'schedule' || github.event_name == 'pull_request')
+    if: github.event.pull_request.merged == false && (github.event_name == 'push' || github.event_name == 'pull_request')
     runs-on: ubuntu-latest
     outputs:
       IMAGE_TAG: ${{ steps.set-env.outputs.IMAGE_TAG }}
@@ -44,7 +44,7 @@ jobs:
 
   dockerize-and-push-gcp:
     needs: setup-environment
-    if: vars.CLOUD_PLATFORM == 'gcp' && (github.event_name == 'push' || github.event_name == 'schedule' || github.event_name == 'pull_request')
+    if: vars.CLOUD_PLATFORM == 'gcp' && (github.event_name == 'push' || github.event_name == 'pull_request')
     environment: ${{ needs.setup-environment.outputs.BRANCH }}
     runs-on: ubuntu-latest
     outputs:
@@ -211,7 +211,7 @@ jobs:
 
   deploy-to-server-gcp:
     needs: dockerize-and-push-gcp
-    if: vars.CLOUD_PLATFORM == 'gcp' && (github.event_name == 'push' || github.event_name == 'schedule' || github.event_name == 'pull_request')
+    if: vars.CLOUD_PLATFORM == 'gcp' && (github.event_name == 'push' || github.event_name == 'pull_request')
     runs-on: ubuntu-latest
     environment: ${{ needs.dockerize-and-push-gcp.outputs.BRANCH }}
     steps:
