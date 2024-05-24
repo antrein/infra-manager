@@ -1,6 +1,9 @@
 from fastapi import FastAPI
 from fastapi.responses import RedirectResponse
 import uvicorn
+import schedule
+import time
+import threading
 from src.services.refresh_token import refresh_kubectl_token
 from src.routes.kubernetes import kube_router
 from src.routes.storage import storage_router
@@ -22,7 +25,23 @@ app.include_router(storage_router, prefix="/storage")
 async def home():
     return {"message": "Antrein Infrastructure Manager", "infra_mode": config["INFRA_MODE"], "be_mode": config["BE_MODE"]}
 
+def job():
+    print("Running refresh_kubectl_token")
+    result = refresh_kubectl_token()
+    print(f"Result: {result}")
+
+def schedule_jobs():
+    schedule.every(1).hour.do(job)
+    while True:
+        schedule.run_pending()
+        time.sleep(1)
+
 if __name__ == '__main__':
     refresh_kubectl_token()
-    uvicorn.run('main:app', host='0.0.0.0', port=8000,
-                log_level="info")
+    # Run the scheduler in a separate thread
+    scheduler_thread = threading.Thread(target=schedule_jobs)
+    scheduler_thread.daemon = True
+    scheduler_thread.start()
+
+    # Run FastAPI app
+    uvicorn.run('main:app', host='0.0.0.0', port=8000, log_level="info")
