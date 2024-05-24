@@ -21,8 +21,7 @@ RUN curl -sLO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/
 RUN curl -sSL https://sdk.cloud.google.com | bash > /dev/null
 
 # Add gcloud to PATH
-RUN export PATH=$PATH:/root/google-cloud-sdk/bin
-RUN source ~/.bashrc
+ENV PATH $PATH:/root/google-cloud-sdk/bin
 
 # Install kubectl and gke-gcloud-auth-plugin
 RUN gcloud components install kubectl gke-gcloud-auth-plugin --quiet
