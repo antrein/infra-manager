@@ -22,6 +22,7 @@ RUN curl -sSL https://sdk.cloud.google.com | bash
 
 # Add gcloud to PATH
 RUN export PATH=$PATH:/root/google-cloud-sdk/bin
+RUN source ~/.bashrc
 
 # Install kubectl
 RUN gcloud components install kubectl
