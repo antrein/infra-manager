@@ -13,22 +13,19 @@ RUN apk add --no-cache curl gnupg bash git
 RUN apk add --no-cache --virtual .pynacl_deps build-base python3-dev libffi-dev
 
 # Menginstall kubectl
-RUN curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl" \
+RUN curl -sLO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl" \
     && install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl \
     && rm kubectl
 
 # Install gcloud SDK
-RUN curl -sSL https://sdk.cloud.google.com | bash
+RUN curl -sSL https://sdk.cloud.google.com | bash > /dev/null
 
 # Add gcloud to PATH
 RUN export PATH=$PATH:/root/google-cloud-sdk/bin
 RUN source ~/.bashrc
 
-# Install kubectl
-RUN gcloud components install kubectl
-
-# Install gke-gcloud-auth-plugin
-RUN gcloud components install gke-gcloud-auth-plugin
+# Install kubectl and gke-gcloud-auth-plugin
+RUN gcloud components install kubectl gke-gcloud-auth-plugin --quiet
 
 # Melakukan upgrade pip untuk memastikan semua requirements dapat terinstall
 RUN python -m pip install --upgrade pip
@@ -50,4 +47,4 @@ RUN kubectl get ns
 EXPOSE 8000
 
 # Menjalankan main.py
-CMD [ "python", "main.py" ]
+CMD ["python", "main.py"]
