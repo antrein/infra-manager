@@ -1,5 +1,7 @@
 #!/bin/bash
 
+rm /root/.kube/config
+
 # Authenticate with the service account
 gcloud auth activate-service-account --key-file=service-account/gcp.json
 

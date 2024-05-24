@@ -33,7 +33,7 @@ RUN python -m pip install --upgrade pip
 RUN pip install -r requirements.txt
 
 # Copy the kubeconfig file into the container (assuming it's provided at build time)
-COPY ./k8s/authorization/kubeconfig.yml /root/.kube/config
+# COPY ./k8s/authorization/kubeconfig.yml /root/.kube/config
 
 # Set the KUBECONFIG environment variable
 ENV KUBECONFIG=/root/.kube/config
