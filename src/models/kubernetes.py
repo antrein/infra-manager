@@ -47,3 +47,7 @@ class UrlRedirectRequest(BaseModel):
     
 class RestartRequest(BaseModel):
     category: RestartCategory
+
+class SpinUpRequest(BaseModel):
+    be_mode: str
+    infra_mode: str

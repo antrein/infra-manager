@@ -1,11 +1,12 @@
-from fastapi import APIRouter, HTTPException
+from enum import Enum
+from fastapi import APIRouter, HTTPException, Query
 from src.logic.kubernetes import (
     create_ns, delete_redirect, get_ns, delete_ns, 
     create_ingress, get_production_deployment, restart_kube, rolling_upgrade, 
-    create_redirect, health_check, spin_up
+    create_redirect, health_check, spin_up, change_mode
 )
 from src.services.refresh_token import refresh_kubectl_token
-from src.models.kubernetes import RestartCategory, UrlRedirectRequest, RestartRequest
+from src.models.kubernetes import RestartCategory, UrlRedirectRequest
 from dotenv import load_dotenv, dotenv_values
 
 load_dotenv()
@@ -78,42 +79,6 @@ async def delete_redirect_router(project_id: str):
     else:
         raise HTTPException(status_code=400, detail={"status": "error", "message": result["message"], "data": {}})
     
-@kube_router.get("/health/", response_model=dict)
-async def check_health():
-    result = health_check_all()
-    if not result['success']:
-        # If health_check fails to execute properly, provide a detailed error message
-        raise HTTPException(status_code=500, detail={"status": "error", "message": result["message"], "data": {}})
-
-    # Evaluate the total number of deployments
-    if result["total_deployments"] == 0:
-        # No deployments found in the namespace
-        return {
-            "status": "failed",
-            "message": "No deployments found in the namespace.",
-            "data": {}
-        }
-    else:
-        # Check if there are non-ready deployments
-        if result["non_ready_deployments"]:
-            # There are some deployments not ready
-            return {
-                "status": "success",
-                "message": "Some deployments are not ready.",
-                "data": {
-                    "healthiness": False,
-                    "deployment_names": result["non_ready_deployments"]
-                }
-            }
-        else:
-            # All deployments are ready
-            return {
-                "status": "success",
-                "message": "All deployments are healthy.",
-                "data": {
-                    "healthiness": True
-                }
-            }
 
 @kube_router.get("/health/{project_id}", response_model=dict)
 async def check_health(project_id: str):
@@ -152,10 +117,18 @@ async def check_health(project_id: str):
                 }
             }
 
+class BEModel(str, Enum):
+    bc = "bc"
+    dd = "dd"
+
+class InfraMode(str, Enum):
+    multi = "multi"
+    shared = "shared"
 
 @kube_router.post("/spin-up", response_model=dict)
-async def spin_up_project():
-    result = spin_up()
+async def spin_up_project(be_mode: BEModel, infra_mode: InfraMode):
+    change_mode(be_mode, infra_mode)
+    result = spin_up(be_mode)
     if result["success"]:
         return {"status": "success", "message": "Spin-up process completed successfully", "data": result["data"]}
     else:

@@ -280,11 +280,30 @@ def health_check(namespace):
         "total_deployments": total_deployments
     }
 
-def spin_up():
+def change_mode(be_mode, infra_mode):
+    script_path = 'script/shell/spin-up/change_mode.sh'
+
+    replacements = {
+        '{{github_pat}}': github_pat,
+        '{{be_mode}}': be_mode,
+        '{{infra_mode}}': infra_mode
+    }
+
+    results = []
+
+    result = replace_and_run_shell(script_path, replacements)
+    if result["success"]:
+        results.append({"message": f"Change mode succesfully"})
+    else:
+        results.append({"message": f"Change mode failed"})
+
+    return {"success": True, "data": results} if results else {"success": False, "data": [], "message": "No mode processed"}
+
+def spin_up(be_mode):
     script_path = 'script/shell/spin-up/spin_up.sh'
 
     # Get both backend and frontend repositories
-    repos_be = get_repos_be()
+    repos_be = get_repos_be(be_mode)
     repos_fe = get_repos_fe()
     repos_infra = get_repos_infra()
     repos = repos_be + repos_fe + repos_infra
