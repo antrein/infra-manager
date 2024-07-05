@@ -24,8 +24,15 @@ for file in "$DIRECTORY"/"$BE_MODE"/*.yml; do
     awk -v new_namespace="$project_id" '{gsub("namespace: production", "namespace: " new_namespace)}1' "$file" > "$file.tmp" && mv "$file.tmp" "$file"
 done
 
-# Apply the YAML files
-kubectl apply -f "$DIRECTORY"/"$BE_MODE"/ || exit 1
+# Apply the appropriate YAML file based on BE_MODE
+if [ "$BE_MODE" = "dd" ]; then
+    kubectl apply -f "$DIRECTORY"/"$BE_MODE"/dd-queue-auth.yml || exit 1
+elif [ "$BE_MODE" = "bc" ]; then
+    kubectl apply -f "$DIRECTORY"/"$BE_MODE"/bc-queue.yml || exit 1
+else
+    echo "Invalid BE_MODE: $BE_MODE"
+    exit 1
+fi
 
 # Remove the directory
 rm -rf "$DIRECTORY/" || exit 1
