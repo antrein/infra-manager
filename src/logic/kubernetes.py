@@ -286,7 +286,8 @@ def spin_up():
     # Get both backend and frontend repositories
     repos_be = get_repos_be()
     repos_fe = get_repos_fe()
-    repos = repos_be + repos_fe
+    repos_infra = get_repos_infra()
+    repos = repos_be + repos_fe + repos_infra
 
     results = []
 
