@@ -4,12 +4,12 @@ project_id={{project_id}}
 project_domain={{project_domain}}
 url_path={{url_path}}
 infra_mode={{infra_mode}}
+be_mode={{be_mode}}
 base_url={{base_url}}
 
 GIT_EMAIL="reyshazni@gmail.com"
 GIT_USER="reyshazni"
 GIT_TOKEN={{github_pat}}
-BE_MODE={{be_mode}}
 
 DIRECTORY="gateway-proxy-$project_id"
 REPO_URL="https://${GIT_USER}:${GIT_TOKEN}@github.com/antrein/prod-yml.git"

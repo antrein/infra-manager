@@ -214,7 +214,7 @@ def create_redirect(project_id, project_domain, url_path, infra_mode):
     try:
         script_path = 'script/shell/ingress/redirect.sh'
 
-        replacements = {'{{project_id}}': project_id, '{{infra_mode}}': infra_mode, '{{project_domain}}': project_domain, '{{url_path}}': url_path, '{{base_url}}': base_url}
+        replacements = {'{{project_id}}': project_id, '{{infra_mode}}': infra_mode, '{{project_domain}}': project_domain, '{{url_path}}': url_path, '{{base_url}}': base_url, '{{be_mode}}': be_mode}
         
         # Run the script after replacements
         result = replace_and_run_shell(script_path, replacements)
