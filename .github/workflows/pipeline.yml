@@ -72,6 +72,8 @@ jobs:
           echo "INFRA_MODE=${{ vars.CONFIG_INFRA_MODE }}" >> ./.env
           echo "CLOUD_PLATFORM=${{ vars.CLOUD_PLATFORM }}" >> ./.env
 
+          echo "BASE_URL=${{ vars.BASE_URL }}" >> ./.env
+
           echo "GCP_PROJECT_ID=${{ vars.GCP_PROJECT_ID }}" >> ./.env
           echo "GCP_CLUSTER_NAME=${{ vars.GCP_CLUSTER_NAME }}" >> ./.env
           echo "GCP_ZONE=${{ vars.GCP_ZONE }}" >> ./.env

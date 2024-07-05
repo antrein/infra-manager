@@ -40,10 +40,10 @@ def get_ns():
         return {"success": False, "message": f"An exception occurred: {str(e)}"}
 
 
-def create_ns(project_id):
+def create_ns(project_id, base_url):
     try:
         script_path = 'script/shell/namespaces/create.sh'
-        replacements = {'{{project_id}}': project_id}
+        replacements = {'{{project_id}}': project_id, '{{base_url}}': base_url}
         success = replace_and_run_shell(script_path, replacements)
         if success:
             return {"success": True, "message": f"Namespace {project_id} created successfully"}

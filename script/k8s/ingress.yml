@@ -23,10 +23,10 @@ spec:
   tls:
     - secretName: <project_id>-tls
       hosts:
-        - <project_id>.antrein.com
-        - <project_id>.api.antrein.com
+        - <project_id>.<base_url>
+        - <project_id>.api.<base_url>
   rules:
-  - host: <project_id>.api.antrein.com
+  - host: <project_id>.api.<base_url>
     http:
       paths:
       - backend:
@@ -43,7 +43,7 @@ spec:
               number: 8080
         path: /bc/queue/
         pathType: ImplementationSpecific
-  - host: <project_id>.antrein.com
+  - host: <project_id>.<base_url>
     http:
       paths:
       - backend:
