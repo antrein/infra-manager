@@ -37,6 +37,7 @@ sed -e "s|<project_id>|$project_id|g" \
     -e "s|<project_domain>|$project_domain|g" \
     -e "s|<infra_mode>|$infra_mode|g" \
     -e "s|<base_url>|$base_url|g" \
+    -e "s|<be_mode>|$be_mode|g" \
     "$script_path.yml" > "$script_path-$project_id-temp.yml" || { echo "Failed to replace placeholders"; exit 1; }
 
 # Apply the temporary ingress file
