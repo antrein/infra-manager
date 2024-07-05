@@ -6,10 +6,6 @@ be_mode={{be_mode}}
 infra_mode={{infra_mode}}
 ORG="antrein"
 
-# Define the new values for the variables
-be_mode="dd"
-infra_mode="shared"
-
 # Update config_be_mode variable
 curl -L \
   -X PATCH \
