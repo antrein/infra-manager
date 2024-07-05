@@ -18,7 +18,7 @@ def get_ns():
         else:
             script_path = 'script/shell/namespaces/get.sh'
         output = run_shell(script_path)
-        non_project_ns = ["cert-manager", "default", "ingress-nginx", "kube-node-lease", "kube-public", "kube-system", "production", "staging"]
+        non_project_ns = ["cert-manager", "default", "ingress-nginx", "kube-node-lease", "kube-public", "kube-system", "production", "staging", "utils"]
 
         if infra_mode == "shared":
             if output:
