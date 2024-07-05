@@ -208,7 +208,7 @@ def rolling_upgrade():
     
 # DEPLOYMENT MANAGEMENT
     
-def create_redirect(project_id, project_domain, url_path, infra_mode, base_url):
+def create_redirect(project_id, project_domain, url_path, infra_mode):
     try:
         script_path = 'script/shell/ingress/redirect.sh'
 
