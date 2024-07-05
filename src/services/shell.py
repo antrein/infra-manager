@@ -19,6 +19,7 @@ def run_script(command):
         return {"success": False, "error": e.stderr.decode('utf-8').strip()}
     
 def replace_and_run_shell(script_path, replacements):
+    print(replacements)
     # Read the script file
     with open(script_path, 'r') as file:
         script_content = file.read()

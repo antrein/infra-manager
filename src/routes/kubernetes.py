@@ -13,7 +13,6 @@ load_dotenv()
 config = dotenv_values(".env")
 
 infra_mode = config["INFRA_MODE"]
-base_url = config["BASE_URL"]
 
 # Initialize your API router
 kube_router = APIRouter(tags=["Kubernetes"])
@@ -38,7 +37,7 @@ async def list_project():
 async def create_project(request: UrlRedirectRequest):
     # Create namespace
     if infra_mode == "multi":
-        ns_result = create_ns(request.project_id, base_url)
+        ns_result = create_ns(request.project_id)
         if not ns_result["success"]:
             raise HTTPException(status_code=400, detail={"status": "error", "message": ns_result["message"], "data": {}})
     
