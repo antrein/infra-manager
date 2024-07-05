@@ -77,6 +77,43 @@ async def delete_redirect_router(project_id: str):
         return {"status": "success", "message": f"Redirect for project {project_id} deleted successfully", "data": {}}
     else:
         raise HTTPException(status_code=400, detail={"status": "error", "message": result["message"], "data": {}})
+    
+@kube_router.get("/health/", response_model=dict)
+async def check_health():
+    result = health_check_all()
+    if not result['success']:
+        # If health_check fails to execute properly, provide a detailed error message
+        raise HTTPException(status_code=500, detail={"status": "error", "message": result["message"], "data": {}})
+
+    # Evaluate the total number of deployments
+    if result["total_deployments"] == 0:
+        # No deployments found in the namespace
+        return {
+            "status": "failed",
+            "message": "No deployments found in the namespace.",
+            "data": {}
+        }
+    else:
+        # Check if there are non-ready deployments
+        if result["non_ready_deployments"]:
+            # There are some deployments not ready
+            return {
+                "status": "success",
+                "message": "Some deployments are not ready.",
+                "data": {
+                    "healthiness": False,
+                    "deployment_names": result["non_ready_deployments"]
+                }
+            }
+        else:
+            # All deployments are ready
+            return {
+                "status": "success",
+                "message": "All deployments are healthy.",
+                "data": {
+                    "healthiness": True
+                }
+            }
 
 @kube_router.get("/health/{project_id}", response_model=dict)
 async def check_health(project_id: str):
