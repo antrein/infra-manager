@@ -4,6 +4,7 @@ project_id={{project_id}}
 project_domain={{project_domain}}
 url_path={{url_path}}
 infra_mode={{infra_mode}}
+base_url={{base_url}}
 
 GIT_EMAIL="reyshazni@gmail.com"
 GIT_USER="reyshazni"
@@ -35,6 +36,7 @@ sed -e "s|<project_id>|$project_id|g" \
     -e "s|<url_path>|$url_path|g" \
     -e "s|<project_domain>|$project_domain|g" \
     -e "s|<infra_mode>|$infra_mode|g" \
+    -e "s|<base_url>|$base_url|g" \
     "$script_path.yml" > "$script_path-$project_id-temp.yml" || { echo "Failed to replace placeholders"; exit 1; }
 
 # Apply the temporary ingress file

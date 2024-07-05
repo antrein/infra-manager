@@ -8,6 +8,7 @@ config = dotenv_values(".env")
 
 github_pat = config["GITHUB_PAT"]
 be_mode = config["BE_MODE"]
+base_url = config["BASE_URL"]
 infra_mode = config["INFRA_MODE"]
 
 # NAMESPACE MANAGEMENT
@@ -207,11 +208,11 @@ def rolling_upgrade():
     
 # DEPLOYMENT MANAGEMENT
     
-def create_redirect(project_id, project_domain, url_path, infra_mode):
+def create_redirect(project_id, project_domain, url_path, infra_mode, base_url):
     try:
         script_path = 'script/shell/ingress/redirect.sh'
 
-        replacements = {'{{project_id}}': project_id, '{{infra_mode}}': infra_mode, '{{project_domain}}': project_domain, '{{url_path}}': url_path}
+        replacements = {'{{project_id}}': project_id, '{{infra_mode}}': infra_mode, '{{project_domain}}': project_domain, '{{url_path}}': url_path, '{{base_url}}': base_url}
         
         # Run the script after replacements
         result = replace_and_run_shell(script_path, replacements)

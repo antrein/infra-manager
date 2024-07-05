@@ -1,0 +1,55 @@
+# script/k8s/ingress.yml
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: testbikin-ingress
+  namespace: testbikin
+  annotations:
+    nginx.ingress.kubernetes.io/proxy-body-size: "3M"
+    kubernetes.io/ingress.allow-http: "true"
+    nginx.ingress.kubernetes.io/use-regex: "true"
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/backend-protocol: HTTP
+    cert-manager.io/cluster-issuer: letsencrypt
+    nginx.ingress.kubernetes.io/configuration-snippet: |
+      more_set_headers "Access-Control-Allow-Origin: $http_origin";
+      # add_header Access-Control-Allow-Origin $http_origin;
+      add_header Access-Control-Allow-Methods "PUT,POST, GET, OPTIONS, PATCH";
+      more_set_headers "Access-Control-Allow-Credentials: true";
+      more_set_headers "Access-Control-Expose-Headers: *";
+      add_header Access-Control-Allow-Headers "DNT,X-CustomHeader,X-LANG,Keep-Alive,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,X-Api-Key,X-Device-Id,Access-Control-Allow-Origin,econolab-uid-authorization,authorization,authorization-v2,api-key,base-url,method,path";    
+spec:
+  ingressClassName: nginx
+  tls:
+    - secretName: testbikin-tls
+      hosts:
+        - testbikin.demo-site.com
+        - testbikin.api.demo-site.com
+  rules:
+  - host: testbikin.api.demo-site.com
+    http:
+      paths:
+      - backend:
+          service:
+            name: bc-dashboard
+            port:
+              number: 8080
+        path: /bc/dashboard/
+        pathType: ImplementationSpecific
+      - backend:
+          service:
+            name: bc-queue
+            port:
+              number: 8080
+        path: /bc/queue/
+        pathType: ImplementationSpecific
+  - host: testbikin.demo-site.com
+    http:
+      paths:
+      - backend:
+          service:
+            name: poc-fe
+            port:
+              number: 80
+        path: /
+        pathType: ImplementationSpecific
