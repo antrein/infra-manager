@@ -43,13 +43,3 @@ spec:
               number: 8080
         path: /bc/queue/
         pathType: ImplementationSpecific
-  - host: <project_id>.<base_url>
-    http:
-      paths:
-      - backend:
-          service:
-            name: poc-fe
-            port:
-              number: 80
-        path: /
-        pathType: ImplementationSpecific
