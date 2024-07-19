@@ -15,4 +15,4 @@ gcloud auth activate-service-account --key-file=service-account/gcp.json
 gcloud config set project antrein
 
 # Get the GKE cluster credentials
-gcloud container clusters get-credentials antrein --zone asia-southeast1-a --project antrein
+gcloud container clusters get-credentials antrein-demo --zone asia-southeast1-a --project antrein
